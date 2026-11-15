@@ -438,7 +438,13 @@ function autoRender() {
   if (screen !== "app") return;
   const f = document.activeElement, typing = f && f.closest && f.closest("#app") && /^(INPUT|TEXTAREA|SELECT)$/.test(f.tagName);
   if (tab === "admin" && (typing || adminDirty)) { renderTop(); renderTabbar(); return; }
+  // Text typed into a field you've tapped away from (like the join form on Groups) would be cleared
+  // by the redraw, so put it back afterwards. Fields still showing what was drawn are left alone,
+  // so new data from the group still shows.
+  const typed: [string, string][] = [];
+  document.querySelectorAll("#app input.field[id], #app textarea[id]").forEach((el: HTMLInputElement) => { if (el.value !== el.defaultValue) typed.push([el.id, el.value]); });
   render();
+  typed.forEach(([fid, v]) => { const el = document.getElementById(fid) as HTMLInputElement | null; if (el && el.value !== v) el.value = v; });
 }
 // In the background the live connection is closed after 2 minutes (saves Supabase's free limits);
 // coming back downloads only what changed and reconnects.
