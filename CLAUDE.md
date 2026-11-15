@@ -195,7 +195,7 @@ labels above headings, a "Made with AI" tag.
 - Text contrast at least 4.5:1 on its background in both themes.
 - Cards are flat and solid with one thin border. Glass (`.glass`) is only for the navigation bars.
 - Buttons and the navigation bars are pills (`border-radius: 999px`, Batko's choice on 15 Nov 2026). New buttons
-  join the pill block at the end of `globals.css`. Cards, list rows, inputs, tick boxes and week cells keep
+  join the pill block at the end of `globals.css`. Tick boxes are pills too. Cards, list rows, inputs and week cells keep
   corners from the scale (8, 10, 12, 14, 16px). Only round icon buttons and avatars are circles.
 - Fonts: Schibsted Grotesk for text, JetBrains Mono for digits only (`.num`), Instrument Serif on the front page.
 - Icons are the drawn SVGs from `ic("name")`, `SYM` and `SVG` in the engine. Add a path there if one is missing.
@@ -236,7 +236,7 @@ inside another task.
 | Saying "works" about a signed-in screen that was never opened | Say what you ran, what you saw, and what could not be checked locally |
 | Inventing a quote, a user count or a rating for the front page | No proof exists yet. Leave it out |
 | Writing copy with em dashes, emoji, hype or exclamation marks | Plain sentences. Use a comma, a colon or a full stop |
-| Square corners on a new button, or pill corners on a card, row or tick box | Buttons are pills; everything else uses the scale |
+| Square corners on a new button, or pill corners on a card, row or week cell | Buttons are pills; everything else uses the scale |
 | A new hard-coded color that only works in dark mode | Use the variables and check light mode too |
 | Adding a package, a linter, a test framework or a refactor nobody asked for | Ask first. Smallest change wins |
 | Changing app behaviour and leaving the docs behind | Update `README.md`, and `lockedin-support/faq.md` when members would notice the change |
