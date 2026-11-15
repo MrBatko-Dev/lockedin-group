@@ -654,6 +654,10 @@
   .termsgate .btn.primary { width: 100%; justify-content: center; }
   .termsgate .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
   .termsgate #signout { margin-top: 6px; }
+  /* The "page not found" page (not-found.tsx). */
+  .notfound { min-height: 70vh; justify-content: center; max-width: 600px !important; }
+  .notfound h1 { font-size: 24px; margin: 0 0 8px; }
+  .notfound .btn { margin-top: 16px; text-decoration: none; }
   .offline-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4;
     background: color-mix(in srgb, var(--warn) 16%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); color: var(--text); }
   .offline-bar .ic { flex: none; color: var(--warn); }
