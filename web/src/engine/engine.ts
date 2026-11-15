@@ -28,7 +28,45 @@ function applyGroupRules(g) {
   TZ = g ? g.timezone : "America/New_York";
   let saved = null;
   try { saved = localStorage.getItem("accent"); if (g) localStorage.setItem("accent", g.color); } catch (e) {}
-  document.documentElement.dataset.accent = g ? g.color : saved || "blue";   // remembered, so the intro matches your group
+  applyAccent(g ? g.color : saved || "blue");   // remembered, so the intro matches your group
+}
+// Group colors: a named one ("teal") has hand-picked shades in globals.css. A custom one is a code like "#3a7bd5"
+// (update 28), and its three shades are worked out here, so text stays readable (4.5:1) whatever color the owner picks:
+// the button color is darkened until white text reads on it, the text color for light mode is darkened until it reads
+// on the light grays, and the one for dark mode is lightened until it reads on the dark grays.
+function isHexColor(c: unknown): c is string { return typeof c === "string" && /^#[0-9a-f]{6}$/.test(c); }
+function accentShades(hex: string): [string, string, string] {
+  const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  const lum = (c: number[]) => {
+    const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a: number[], b: number[]) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const toHex = (c: number[]) => "#" + c.map(v => Math.round(v).toString(16).padStart(2, "0")).join("");
+  // Move the color toward black or white in small steps until it has enough contrast against the given background.
+  const until = (toward: number[], against: number[]) => {
+    for (let t = 0; t <= 1.0001; t += 0.02) {
+      const c = rgb.map((v, i) => v + (toward[i] - v) * t);
+      if (contrast(c, against) >= 4.6) return toHex(c);
+    }
+    return toHex(toward);
+  };
+  const black = [0, 0, 0], white = [255, 255, 255];
+  return [until(black, white), until(black, [0xec, 0xec, 0xf1]), until(white, [0x2b, 0x2c, 0x33])];
+}
+// The CSS for a custom color ("" for a named one), for <html> or a group logo.
+function accentVars(c: unknown): string {
+  if (!isHexColor(c)) return "";
+  const [acc, lt, dk] = accentShades(c);
+  return `--acc:${acc};--acc-lt:${lt};--acc-dk:${dk};`;
+}
+function applyAccent(c: string): void {
+  const root = document.documentElement, vars = accentVars(c);
+  root.dataset.accent = vars ? "custom" : c;
+  for (const k of ["--acc", "--acc-lt", "--acc-dk"]) root.style.removeProperty(k);
+  if (vars) root.style.cssText += vars;
+  // Remembered so the script in layout.tsx can show a custom color before the app has loaded.
+  try { if (vars) localStorage.setItem("accent-vars", vars); else localStorage.removeItem("accent-vars"); } catch (e) {}
 }
 applyGroupRules(null);
 const tzCity = tz => tz.split("/").pop().replace(/_/g, " ");
@@ -74,6 +112,7 @@ const ICON_PATHS = {
   search: '<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/>',
   server: `<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>`,
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/>',
+  plus: '<path d="M12 5.5v13M5.5 12h13"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 };
 const ic = (name, px = 16) => `<svg class="ic" viewBox="0 0 24 24" width="${px}" height="${px}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] || ""}</svg>`;
@@ -1836,7 +1875,7 @@ function goToDay(k) {
 function logoUrl(g) { return g && g.logo_path ? sb.storage.from("logos").getPublicUrl(g.logo_path).data.publicUrl : ""; }
 function groupLogo(g, px) {
   const url = logoUrl(g);
-  return `<span class="glogo acc-${esc(g ? g.color : "blue")}" style="width:${px}px;height:${px}px;font-size:${Math.round(px * 0.48)}px" aria-hidden="true">${esc(((g && g.name) || "?").trim()[0].toUpperCase())}${url ? `<img src="${esc(url)}" alt="" onerror="this.remove()">` : ""}</span>`;
+  return `<span class="glogo acc-${esc(g ? (isHexColor(g.color) ? "custom" : g.color) : "blue")}" style="${accentVars(g && g.color)}width:${px}px;height:${px}px;font-size:${Math.round(px * 0.48)}px" aria-hidden="true">${esc(((g && g.name) || "?").trim()[0].toUpperCase())}${url ? `<img src="${esc(url)}" alt="" onerror="this.remove()">` : ""}</span>`;
 }
 function groupButton(px) {
   const g = group();
@@ -2598,7 +2637,7 @@ const gsNow = (): string | null => GS_PARTS.some(p => p[0] === gsPart) ? gsPart 
 // The small line under each row: what is set right now, so most visits need no page opened at all.
 function gsSummary(part: string, g): string {
   const b = Object.assign({}, DEFAULT_BOXES, g.boxes || {});
-  if (part === "look") return `${g.name} · ${(COLORS.find(c => c[0] === g.color) || ["", "Blue"])[1]}${logoUrl(g) ? " · logo" : ""}`;
+  if (part === "look") return `${g.name} · ${isHexColor(g.color) ? "Custom color" : (COLORS.find(c => c[0] === g.color) || ["", "Blue"])[1]}${logoUrl(g) ? " · logo" : ""}`;
   if (part === "boxes") {
     const req = SLOTS.filter(k => b[k].kind === "req").length, bonus = SLOTS.filter(k => b[k].kind === "bonus").length;
     return `${req} required${bonus ? `, ${bonus} bonus` : ""}`;
@@ -2612,6 +2651,12 @@ function gsSummary(part: string, g): string {
   if (part === "mentor") return groupServer ? `Linked to ${groupServer.name}` : "Not linked";
   return "Hand the group to someone else";
 }
+// The last swatch opens the device's own color picker. It shows a plus until a custom color is picked.
+function customSwatch(color: string): string {
+  const on = isHexColor(color);
+  return `<label class="swatch swatch-custom${on ? " on" : ""}" id="custom-swatch" title="Custom color" style="${accentVars(color)}">${on ? "" : ic("plus", 18)}
+    <input type="color" id="custom-color" value="${on ? color : "#2563eb"}" aria-label="Custom color${on ? " (picked)" : ""}"></label>`;
+}
 function gsPageHtml(part: string, g): string {
   const b = Object.assign({}, DEFAULT_BOXES, g.boxes || {}), p = g.points || {};
   const save = `<button class="btn primary small" id="save-group" style="margin-top:14px">Save</button>
@@ -2624,7 +2669,8 @@ function gsPageHtml(part: string, g): string {
     ${save.replace(">Save<", ">Save name<")}
     <span class="flabel">Color <small class="sub-hint" id="color-msg" role="status" aria-live="polite"></small></span>
     <div class="swatches" role="radiogroup" aria-label="Color">${COLORS.map(([c, l]) =>
-      `<button class="swatch acc-${c}" role="radio" data-color="${c}" aria-checked="${g.color === c}" aria-label="${l}" title="${l}"></button>`).join("")}</div>
+      `<button class="swatch acc-${c}" role="radio" data-color="${c}" aria-checked="${g.color === c}" aria-label="${l}" title="${l}"></button>`).join("")}
+      ${customSwatch(g.color)}</div>
     <span class="flabel">Logo</span>
     <div class="logorow">${groupLogo(g, 52)}
       <button class="btn plain small" id="logo-pick">${logo ? "Change" : "Upload"}</button>
@@ -3791,25 +3837,7 @@ document.addEventListener("click", async e => {
     if (!x || !(await askConfirm(`Delete ${x.name}?`, "This deletes the group for everyone in it, with all its ticks, notes and pictures. It can't be undone.", "Delete group"))) return;
     return adminDo(sb.from("groups").delete().eq("id", x.id), `${x.name} was deleted.`);
   }
-  if (d.color) {
-    // The color is saved as soon as you tap it (it used to wait for "Save settings", so leaving the page lost it).
-    const g = group(), before = g.color, msg = document.getElementById("color-msg");
-    if (d.color === before) return;
-    document.querySelectorAll("[data-color]").forEach(b => b.setAttribute("aria-checked", String(b === t)));
-    document.documentElement.dataset.accent = d.color;
-    if (msg) msg.textContent = "Saving…";
-    const { error: e2 } = await sb.from("groups").update({ color: d.color }).eq("id", gid);
-    if (e2) {
-      document.querySelectorAll("[data-color]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.color === before)));
-      document.documentElement.dataset.accent = before;
-      if (msg) msg.textContent = "Couldn't save the color: " + e2.message;
-      return;
-    }
-    g.color = d.color; applyGroupRules(g);
-    if (msg) msg.textContent = "Saved";
-    renderTop(); renderTabbar();
-    return;
-  }
+  if (d.color) return saveColor(d.color);
   if (d.switchGroup) return switchGroup(d.switchGroup);
   // Mentor servers: open one, unfold a group, take a group off, delete a server (app owner).
   if (d.openServer) return openServer(+d.openServer);
@@ -3998,7 +4026,34 @@ document.addEventListener("input", e => {
   putDraft(editing.day + "|" + editing.key, v);
   editTick(editing.day, editing.key, row => { row.note = v; }, true);
 });
-document.addEventListener("change", e => { if (e.target.id === "daypick") goToDay(e.target.value); });
+document.addEventListener("change", e => {
+  if (e.target.id === "daypick") goToDay(e.target.value);
+  if (e.target.id === "custom-color") saveColor(String(e.target.value).toLowerCase());
+});
+// The color is saved as soon as you pick it (it used to wait for "Save settings", so leaving the page lost it).
+// A named swatch or the custom picker (a code like "#3a7bd5").
+function markColor(c: string): void {
+  document.querySelectorAll("[data-color]").forEach(b => b.setAttribute("aria-checked", String(b.getAttribute("data-color") === c)));
+  const sw = document.getElementById("custom-swatch");
+  if (sw) sw.outerHTML = customSwatch(c);
+}
+async function saveColor(color: string): Promise<void> {
+  const g = group(), before = g.color, msg = document.getElementById("color-msg");
+  if (color === before || !(isHexColor(color) || COLORS.some(c => c[0] === color))) return;
+  markColor(color);
+  applyAccent(color);
+  if (msg) msg.textContent = "Saving…";
+  const { error: e2 } = await sb.from("groups").update({ color }).eq("id", gid);
+  if (e2) {
+    markColor(before);
+    applyAccent(before);
+    if (msg) msg.textContent = "Couldn't save the color: " + e2.message;
+    return;
+  }
+  g.color = color; applyGroupRules(g);
+  if (msg) msg.textContent = "Saved";
+  renderTop(); renderTabbar();
+}
 // Desktop browsers only open the calendar from its small icon; open it from anywhere on the date.
 document.addEventListener("click", async e => {
   const clear = e.target.closest && e.target.closest("[data-faq-clear]");

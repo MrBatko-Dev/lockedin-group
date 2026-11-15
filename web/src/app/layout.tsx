@@ -19,6 +19,8 @@ const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 's
 const BEFORE_PAINT = `try {
   const root = document.documentElement, accent = localStorage.getItem("accent");
   if (/^[a-z]{3,12}$/.test(accent || "")) root.dataset.accent = accent;
+  const vars = localStorage.getItem("accent-vars");   // a custom group color, worked out by the app last time
+  if (/^#[0-9a-f]{6}$/.test(accent || "") && /^(--acc(-lt|-dk)?:#[0-9a-f]{6};){3}$/.test(vars || "")) { root.dataset.accent = "custom"; root.style.cssText += vars; }
   const theme = (JSON.parse(localStorage.getItem("mnq-settings") || "{}").theme) || "dark";
   if (theme === "light" || theme === "dark") root.dataset.theme = theme;
 } catch (e) {}`;

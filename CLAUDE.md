@@ -135,7 +135,7 @@ live unless asked, and suggest a new chat when a task is finished.
   device's local date. These helpers must agree with `current_trading_day(group)` in the SQL, or the app and the
   database disagree about which day is open.
 - Supabase returns at most 1,000 rows per request. Lists that can grow use `fetchAll()`.
-- Wrap `localStorage` use in `try/catch` (private mode throws). Existing keys: `accent`, `group`, `tab`,
+- Wrap `localStorage` use in `try/catch` (private mode throws). Existing keys: `accent`, `accent-vars`, `group`, `tab`,
   `mnq-settings`, `outbox`, `lockedin.intent`, `draft:*`, `badges:*`.
 - Constants that mirror the database: `SLOTS` (six fixed box columns) and `BREAKS` (must match update 6).
 - `canEdit`, `isAdmin` and friends only decide what to show. They are not security. See section 7.

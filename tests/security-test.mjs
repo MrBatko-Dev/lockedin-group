@@ -1271,5 +1271,34 @@ ok(!!(await rpc("ta", "server_group_view", [G3])).error, "after the group owner 
 await db.exec(u27);
 ok(!!(await rpc(mem3, "server_group_view", [G3])).error && !!(await rpc("anon", "server_group_view", [G3])).error, "running update 27 a second time keeps the rules");
 
+// ================================================================ update 28: custom colors
+const u28 = readFileSync(dir + "update-28-custom-colors.sql", "utf8");
+await db.exec(u28);
+console.log("\nloaded: update-28-custom-colors.sql");
+section("custom colors (update 28)");
+const colorOf = async g => (await one(`select color from public.groups where id=$1`, [g])).color;
+const setColor = (who, g, c) => as(who, `update public.groups set color=$2 where id=$1`, [g, c]);
+r = await setColor(own3, G3, "#3a7bd5");
+ok(!r.error && r.count === 1 && (await colorOf(G3)) === "#3a7bd5", "the group owner can pick a custom color code");
+r = await setColor(own3, G3, "teal");
+ok(!r.error && (await colorOf(G3)) === "teal", "the named colors still work");
+let badOk = true;
+for (const bad of ["#FF00FF", "#fff", "#12345g", "#1234567", "3a7bd5", "purple", "#3a7bd5;}", "<img src=x>", "#3a7bd5\n", ""]) {
+  r = await setColor(own3, G3, bad);
+  if (!r.error) { badOk = false; console.log("   accepted:", JSON.stringify(bad)); }
+}
+ok(badOk && (await colorOf(G3)) === "teal", "anything that isn't a named color or # with six small hex digits is refused");
+r = await setColor(mem3, G3, "#000000");
+ok(!r.error && r.count === 0 && (await colorOf(G3)) === "teal", "a member can't change the color");
+r = await setColor("o9", G3, "#000000");
+ok(!r.error && r.count === 0 && (await colorOf(G3)) === "teal", "another group's owner can't change it");
+r = await setColor("anon", G3, "#000000");
+ok((!!r.error || r.count === 0) && (await colorOf(G3)) === "teal", "signed-out visitors can't change it");
+await setColor(own3, G3, "#3a7bd5");
+await db.exec(u28);
+ok((await colorOf(G3)) === "#3a7bd5" && !!(await setColor(own3, G3, "#FFF")).error
+  && (await one(`select count(*)::int n from pg_constraint where conrelid='public.groups'::regclass and conname='groups_color_check'`)).n === 1,
+  "running update 28 a second time keeps the custom color and the rule");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

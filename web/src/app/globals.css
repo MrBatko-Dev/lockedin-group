@@ -840,6 +840,12 @@
   .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
   .swatch { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--acc); cursor: pointer; }
   .swatch[aria-checked="true"] { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--text); }
+  /* The custom color swatch: a dashed ring with a plus until a color is picked, then filled with that color.
+     The real color input covers it, invisible, so a tap opens the device's own color picker. */
+  .swatch-custom { position: relative; display: inline-grid; place-items: center; background: transparent; border: 2px dashed var(--muted); color: var(--text-2); }
+  .swatch-custom.on { background: var(--acc); border: 0; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--text); }
+  .swatch-custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+  .swatch-custom:focus-within { outline: 2px solid var(--accent-text); outline-offset: 2px; }
   .logorow { display: flex; align-items: center; gap: 10px; }
   .boxrow { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 8px; margin-bottom: 8px; }
   .pointsrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
