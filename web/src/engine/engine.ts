@@ -2292,7 +2292,8 @@ function computeStats(key) {
     points += dayPoints(st, bonusTicks);
     if (st === "COMPLETE") { run++; best = Math.max(best, run); completeDays++; if (prevSt === "MISSING") comebacks++; if (rec.no_trade) noTrades++; }
     else if (isFinal(k)) run = 0;
-    if (isFinal(k)) { closed++; if (st === "COMPLETE") complete++; prevSt = st; w.n++; if (st !== "COMPLETE") w.ok = false; }
+    // A "not logged" day (only excused people on it) isn't counted in "x of y days done".
+    if (isFinal(k)) { if (st !== "UNLOGGED") closed++; if (st === "COMPLETE") complete++; prevSt = st; w.n++; if (st !== "COMPLETE") w.ok = false; }
     else w.open = true;
   }
   if (last && last !== today && nextTrading(last) < today) run = 0;
@@ -2479,7 +2480,7 @@ function rangeStats(key, from) {
     if (st === "EXCUSED") continue;
     const rec = tickOf(k, key) || {};
     points += dayPoints(st, RULES.filter(r => r[2] === "bonus" && rec[r[0]]).length);
-    if (isFinal(k)) { closed++; if (st === "COMPLETE") complete++; }
+    if (isFinal(k) && st !== "UNLOGGED") { closed++; if (st === "COMPLETE") complete++; }
   }
   return { points, closed, complete };
 }
