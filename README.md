@@ -98,7 +98,7 @@ and tick **only their own** homework boxes. Batko is the app owner; each group h
 4. Back in Supabase (Discord provider): switch **Enable Sign in with Discord** on → paste **Client ID** and **Client Secret** → **Save**.
 
 ### 5. Put the website online (GitHub Pages)
-1. GitHub Desktop → **File → Add Local Repository** → choose this `mnq-homework` folder → if asked, **create a repository** here.
+1. GitHub Desktop → **File → Add Local Repository** → choose this `lockedin` folder → if asked, **create a repository** here.
 2. Summary: `First version` → **Commit to main** → **Publish repository** → untick **Keep this code private** → **Publish**.
 3. On github.com, open the repo → **Settings** → **Pages** → Source: **GitHub Actions**. The next push to main builds and publishes the website (watch it under **Actions**).
 4. After about a minute the page shows your address: `https://YOUR-GITHUB-NAME.github.io/lockedin-group/`. Copy it.
@@ -125,7 +125,7 @@ Post the website link (https://lockedingroup.app) in the Discord channel. When s
 
 This folder is connected to GitHub, with a history of every change. Use this instead of uploading files on github.com.
 
-1. Open **GitHub Desktop** → **File → Add Local Repository** → choose this `mnq-homework` folder → **Add Repository** (only the first time).
+1. Open **GitHub Desktop** → **File → Add Local Repository** → choose this `lockedin` folder → **Add Repository** (only the first time).
 2. Saved changes show under **History**. Click **Push origin** (top right). The website updates in about a minute.
 3. **Something broke?** **History** → right-click the change that broke it → **Revert Changes in Commit** → **Push origin**. The site goes back to how it was.
 

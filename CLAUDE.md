@@ -38,14 +38,14 @@ The session usually starts in the parent folder `/Users/adambatko/claude code/`.
 
 | Path | What it is |
 |---|---|
-| `mnq-homework/` | **The project.** The only git repository (GitHub `adambatko2009-lang/lockedin-group`) |
+| `lockedin/` | **The project.** The only git repository (GitHub `adambatko2009-lang/lockedin-group`) |
 | `.claude/launch.json` | Preview servers. `lockedin-web-dev` (port 8773) is the one to use. The others are old |
 | `.claude/hooks/block-secrets.sh`, `.claude/settings.json` | Blocks every tool call that touches a `secrets/` folder |
 | `.claude/skills/sql-update/SKILL.md` | The exact recipe for a database update. Follow it for every SQL change |
 | `lockedin-support/` | `faq.md` and instructions for the email-draft agent. Not part of the website |
-| `mnq-homework-preview/` | Old screenshots, and `seed.js` (a pretend group written for the old single-file site) |
+| `lockedin-preview/` | Old screenshots, and `seed.js` (a pretend group written for the old single-file site) |
 
-Inside `mnq-homework/`:
+Inside `lockedin/`:
 
 | Path | What it is |
 |---|---|
@@ -68,7 +68,7 @@ Inside `mnq-homework/`:
 
 ## 4. Commands
 
-Run these from `mnq-homework/`. All four passed on 13 November 2026 (423 and 14 checks).
+Run these from `lockedin/`. All four passed on 13 November 2026 (423 and 14 checks).
 
 ```bash
 cd web && npx tsc --noEmit        # type check, about 1 second
