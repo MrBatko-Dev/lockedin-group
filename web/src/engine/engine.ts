@@ -1665,7 +1665,7 @@ function renderServer() {
       ${open ? `<div class="srv-list">${list}</div>` : ""}</div>`;
   }).join("");
   const none = `<div class="card"><p class="empty hinfo">No group is linked yet.${infoBtn("srv-none", "linking groups")}</p>
-    ${infoText("srv-none", `${v.tag ? `New groups: the person who starts the group types the tag ${esc(v.tag)}. Groups that already exist` : "Groups"}: send the server code to their owners. They type it in Admin, Group settings, Mentor server.`)}</div>`;
+    ${infoText("srv-none", `${v.tag ? `New groups: the person who starts the group types the tag ${esc(v.tag)}. Groups that already exist` : "Groups"}: send the server code to their owners. They type it in Admin → Group settings → Mentor server.`)}</div>`;
   return `<div class="srv-head"><div><h1>${esc(v.name)}</h1>
       <p>${v.groups.length ? `<span class="num">${v.groups.length}</span> ${v.groups.length === 1 ? "group" : "groups"} · <span class="num">${doneAll}</span> of <span class="num">${people}</span> members done today` : "Your mentor view"}</p></div>
       <button class="btn plain small" id="srv-refresh">Refresh</button></div>
@@ -1676,7 +1676,7 @@ function renderServer() {
       ${infoText("srv-tag", `For new groups. Someone who starts a group types this tag where it asks "Are you part of a server?". Once the app owner approves the group it shows up here, and its join code starts with ${esc(v.tag)}.`)}
       <div class="codebox"><code>${esc(v.tag)}</code></div></div>` : ""}
     <div class="card"><div class="cardhead">${headInfo("Server code", "srv-code", "the server code")}</div>
-      ${infoText("srv-code", "For groups that already exist. A group owner types this code in Admin, Group settings, Mentor server. After that you see the group here: who finished their boxes each day, and their streaks. You can't see notes, pictures or results, and you can't change anything in a group.")}
+      ${infoText("srv-code", "For groups that already exist. A group owner types this code in Admin → Group settings → Mentor server. After that you see the group here: who finished their boxes each day, and their streaks. You can't see notes, pictures or results, and you can't change anything in a group.")}
       <div class="codebox"><code>${esc(v.code)}</code>
         <button class="btn plain small" id="srv-copy">Copy</button>
         <button class="btn danger small" id="srv-new-code">New code</button></div></div>
