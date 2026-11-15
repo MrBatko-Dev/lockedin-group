@@ -183,7 +183,7 @@ live unless asked, and suggest a new chat when a task is finished.
 
 Batko's rule: the site must look hand-made and trustworthy, never "vibe-coded".
 
-**Never use:** purple gradients, pill-shaped buttons, fake reviews, fake numbers or customer counters, invented
+**Never use:** purple gradients, fake reviews, fake numbers or customer counters, invented
 quotes, vague hero text, emoji as icons, em dashes, exclamation marks in the interface, over-the-top scroll
 animations, anything that follows the cursor, glows, confetti, AI stock photos, AI-sounding filler, small capital
 labels above headings, a "Made with AI" tag.
@@ -194,8 +194,9 @@ labels above headings, a "Made with AI" tag.
   colors. Everything must work in dark (the default) and light, and with all seven group colors.
 - Text contrast at least 4.5:1 on its background in both themes.
 - Cards are flat and solid with one thin border. Glass (`.glass`) is only for the navigation bars.
-- Corners come from the sizes already used (10, 12, 14, 16px). A button's corner radius must stay well under
-  half its height. Only round icon buttons and avatars are circles.
+- Buttons and the navigation bars are pills (`border-radius: 999px`, Batko's choice on 15 Nov 2026). New buttons
+  join the pill block at the end of `globals.css`. Cards, list rows, inputs, tick boxes and week cells keep
+  corners from the scale (8, 10, 12, 14, 16px). Only round icon buttons and avatars are circles.
 - Fonts: Schibsted Grotesk for text, JetBrains Mono for digits only (`.num`), Instrument Serif on the front page.
 - Icons are the drawn SVGs from `ic("name")`, `SYM` and `SVG` in the engine. Add a path there if one is missing.
 - Phones first: check at 375px and 1280px wide. The layout switches at 960px (`isWide()`). Tap targets are at
@@ -235,7 +236,7 @@ inside another task.
 | Saying "works" about a signed-in screen that was never opened | Say what you ran, what you saw, and what could not be checked locally |
 | Inventing a quote, a user count or a rating for the front page | No proof exists yet. Leave it out |
 | Writing copy with em dashes, emoji, hype or exclamation marks | Plain sentences. Use a comma, a colon or a full stop |
-| Pill corners (`999px`, or a radius of half the height) on a button | A radius from the existing scale |
+| Square corners on a new button, or pill corners on a card, row or tick box | Buttons are pills; everything else uses the scale |
 | A new hard-coded color that only works in dark mode | Use the variables and check light mode too |
 | Adding a package, a linter, a test framework or a refactor nobody asked for | Ask first. Smallest change wins |
 | Changing app behaviour and leaving the docs behind | Update `README.md`, and `lockedin-support/faq.md` when members would notice the change |
@@ -257,7 +258,7 @@ Go through every line. If one is not true, the task is not done.
 - [ ] You opened the changed page in the preview at 375px and 1280px, in dark and light, and the browser console
       shows no new errors. For screens that need sign-in, you said that you could not open them.
 - [ ] The design and copy list in section 8 holds for everything you added. Search your diff for the em dash character, emoji,
-      `999px`, `!` in interface text and capital-letter labels.
+      `!` in interface text and capital-letter labels.
 - [ ] `VERSION` in `sw.js` was raised if the cached file list or those files changed.
 - [ ] `README.md` (and `lockedin-support/faq.md` if members would notice) still tells the truth.
 - [ ] `git status` shows only files you meant to change. Nothing from `secrets/`, `web/out` or `.next`.
