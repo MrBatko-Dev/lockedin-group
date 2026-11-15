@@ -1563,10 +1563,11 @@ a.btn { text-decoration: none; }
 
 /* Pill corners (Batko, 15 Nov 2026): every button and the navigation bars have fully round ends.
    This comes last so it wins over the older corner scale above. The tick boxes (.t, .q) are pills too.
+   The Groups / Settings / Help tiles on Profile (.mequick) too.
    Left as they were on purpose: the week grid cells (.cell), list rows, picture thumbnails, cards and
    inputs, because they are small squares or rows rather than buttons. */
 .t, .q, .btn, .btn.small, .reflect-nudge, .quick .qnote, .react, .tagpick button,
 .segset, .segset button, .result-set button, .pic > button.remove, .pick-opt,
 .topbar, .topbar .end button, .topbar .mid button, .topbar .mid .gname, .pmenu summary,
 .tabbar, .tabbar button, .tabbar .pill, .tablens, .rail button,
-.lp-nav, .lp-burger { border-radius: 999px; }
+.mequick button, .lp-nav, .lp-burger { border-radius: 999px; }
