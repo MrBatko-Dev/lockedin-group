@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = { title: "LockedIn Group" };
+// The description is what Google and link previews (Discord, iMessage) show under the title.
+const DESCRIPTION = "Daily trading homework tracked as a group. Your Discord group picks the boxes, everyone ticks them off after their session, and everyone can see who did.";
+export const metadata: Metadata = {
+  title: "LockedIn Group",
+  description: DESCRIPTION,
+  openGraph: { title: "LockedIn Group", description: DESCRIPTION, url: "https://lockedingroup.app", siteName: "LockedIn", type: "website" },
+};
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 // Security: the page may only load from and talk to our own site, our Supabase project and Discord's picture server.

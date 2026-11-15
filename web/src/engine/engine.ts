@@ -127,6 +127,10 @@ function nyMoment(k, hour): any {
     const p = nyParts(guess);
     const seen = Date.UTC(+p.key.slice(0, 4), +p.key.slice(5, 7) - 1, +p.key.slice(8, 10), p.hour, p.minute);
     ms = guess - (seen - guess);
+    // Check once more with the clock offset at the answer itself: on a day the clocks change
+    // (a weekday in some countries) the first answer can be an hour off.
+    const q = nyParts(ms);
+    ms = guess - (Date.UTC(+q.key.slice(0, 4), +q.key.slice(5, 7) - 1, +q.key.slice(8, 10), q.hour, q.minute) - ms);
     momentCache.set(ck, ms);
   }
   return new Date(ms);
