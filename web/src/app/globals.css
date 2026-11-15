@@ -541,7 +541,6 @@
   .rtag i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
   .rtag.r-win { color: var(--good-text); } .rtag.r-loss { color: var(--crit-text); } .rtag.r-gamble { color: var(--text-2); } .rtag.r-breakeven { color: color-mix(in srgb, var(--warn) 50%, var(--text)); }   /* plain yellow is unreadable on white */
   .ntag { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface-2); border-radius: 6px; padding: 1px 6px; }
-  @media (max-width: 420px) { .ntag-text { display: none; } .rtag .ntag-text { display: inline; } }
   .time.urgent { color: var(--crit-text); }
   @media (prefers-reduced-motion: no-preference) {
     .time.urgent { animation: pulse 1.6s ease-in-out infinite; }
@@ -1456,6 +1455,16 @@ button.mini { display: flex; align-items: center; justify-content: space-between
   .clink::after, .reportlink::after { top: -4px; transform: none; }
   /* "Today" sits right under the date, so its tap area only grows sideways and down. */
   #gotoday::after { content: ""; position: absolute; top: 0; bottom: -14px; left: -12px; right: -12px; }
+  /* Text buttons and fold-out lines: the same invisible 44px band. */
+  .linkbtn, .backrow, .faq-link, .howto > summary, .more-badges > summary, .reqbox > summary, .lb + details > summary { position: relative; }
+  .linkbtn::after, .backrow::after, .faq-link::after, .howto > summary::after, .more-badges > summary::after, .reqbox > summary::after, .lb + details > summary::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  /* Names cut long text off with "...", so the tap area grows with padding instead (the negative margin keeps the row the same size). */
+  .namebtn { padding-block: 12px; margin-block: -12px; }
+  /* Top bar on phones: the group name and the date sit 6px apart, so each gets its own share of the space. */
+  .topbar .mid .gname { position: relative; }
+  .topbar .mid .gname::after { content: ""; position: absolute; left: 0; right: 0; top: -11px; bottom: -3px; }
+  .topbar .datepick input { inset: -3px 0 -5px; height: auto; }
   /* iPhones zoom the whole page when you tap a field with text under 16px. */
   select, .field, .cform .cbox, .reqbox textarea.field, .panel textarea, .reflect textarea, .repform textarea, .note input { font-size: 16px; }
 }
