@@ -1577,3 +1577,10 @@ a.btn { text-decoration: none; }
 .topbar, .topbar .end button, .topbar .mid button, .topbar .mid .gname, .pmenu summary,
 .tabbar, .tabbar button, .tabbar .pill, .tablens, .rail button,
 .mequick button, .lp-nav, .lp-burger { border-radius: 999px; }
+
+/* Phones only (Batko, 15 Nov 2026): the tick boxes go back to rounded cards, because two pills side by
+   side with long names looked squashed on a narrow screen. From 960px up they stay pills. */
+@media (max-width: 959px) {
+  .t { border-radius: 10px; }
+  .q { border-radius: 14px; }
+}
