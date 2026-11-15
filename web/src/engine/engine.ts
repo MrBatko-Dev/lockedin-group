@@ -1250,10 +1250,10 @@ function openPanel(day, key) {
     <div class="pics" id="panel-pics"></div>
     <details class="fold"><summary><b>P&amp;L and R</b><span class="fold-val" id="fold-num">${foldNum(rec)}</span><span class="fold-chev" aria-hidden="true">${ic("chevron-down", 18)}</span></summary><div class="fold-in">
       <div class="numrow">
-      <label class="numfield"><span>P&amp;L</span><b aria-hidden="true">$</b><input id="panel-pnl" inputmode="decimal" autocomplete="off" placeholder="0" value="${hasNum(rec.pnl) ? +rec.pnl : ""}" aria-label="P&L in dollars"></label>
-      <label class="numfield"><span>R</span><input id="panel-rr" inputmode="decimal" autocomplete="off" placeholder="0" value="${hasNum(rec.rr) ? +rec.rr : ""}" aria-label="Risk-reward in R"></label>
+      <label class="numfield"><span>P&amp;L</span><b aria-hidden="true">$</b><input id="panel-pnl" inputmode="decimal" autocomplete="off" placeholder="0" value="${hasNum(rec.pnl) ? +rec.pnl : ""}" aria-label="P&L in dollars"><button type="button" class="numsign" data-sign="panel-pnl" aria-label="Switch P&amp;L between plus and minus">&plusmn;</button></label>
+      <label class="numfield"><span>R</span><input id="panel-rr" inputmode="decimal" autocomplete="off" placeholder="0" value="${hasNum(rec.rr) ? +rec.rr : ""}" aria-label="Risk-reward in R"><button type="button" class="numsign" data-sign="panel-rr" aria-label="Switch R between plus and minus">&plusmn;</button></label>
     </div>
-    <p class="sub-hint" id="num-hint">Optional. Use a minus for a loss, like -150. Your group sees it.</p></div></details>
+    <p class="sub-hint" id="num-hint">Optional. For a loss, tap ± or type a minus, like -150. Your group sees it.</p></div></details>
     <details class="fold"><summary><b>Rule breaks today</b><span class="fold-val" id="fold-tags">${foldTags(rec)}</span><span class="fold-chev" aria-hidden="true">${ic("chevron-down", 18)}</span></summary><div class="fold-in">
     <p class="sub-hint">Be honest: it never costs points, and it helps you spot patterns.</p>
     <div id="panel-tags">${tagPickHtml(rec)}</div></div></details>
@@ -3595,6 +3595,16 @@ document.addEventListener("click", async e => {
   const t = e.target.closest("button");
   if (!t) return;
   const d = t.dataset;
+  // the small +/- key in the P&L and R boxes: phone number keypads have no minus key, so this flips the sign
+  if (d.sign) {
+    const inp = document.getElementById(d.sign) as HTMLInputElement | null;
+    if (!inp) return;
+    const v = inp.value.trim();
+    inp.value = v.startsWith("-") ? v.slice(1) : "-" + v;
+    inp.focus();
+    inp.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
   // a name tapped in a name box's list: pick that person and put their name in the box
   if (d.pickIn) { pickChosen[d.pickIn] = d.pickVal; pickQuery[d.pickIn] = d.pickLabel; return renderKeepingFields(); }
   // the small "i" button: show or fold its explanation, right here (it also works inside the sheets)
@@ -3971,7 +3981,7 @@ document.addEventListener("input", e => {
     const isPnl = e.target.id === "panel-pnl", v = parseNum(e.target.value, isPnl ? 10000000 : 100), hint = document.getElementById("num-hint");
     if (v === undefined) return;
     if (Number.isNaN(v)) { hint.textContent = isPnl ? "Numbers only, like 420 or -150.50." : "Numbers only, like 2 or -1, between -100 and 100."; hint.classList.add("bad"); return; }
-    hint.textContent = "Optional. Use a minus for a loss, like -150. Your group sees it."; hint.classList.remove("bad");
+    hint.textContent = "Optional. For a loss, tap ± or type a minus, like -150. Your group sees it."; hint.classList.remove("bad");
     const { day, key } = editing;
     editTick(day, key, row => {
       row[isPnl ? "pnl" : "rr"] = v;
