@@ -158,6 +158,8 @@
   .mrow { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
   .name { flex: 1; font-size: 17px; font-weight: 600; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
   .name .namebtn { flex: 0 1 auto; min-width: 4ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* a long name shortens with "..." next to the picture, instead of dropping to its own line and leaving the picture alone */
+  .name .av + .namebtn { max-width: calc(100% - 34px); }
   .you { font-size: 12px; font-weight: 700; color: var(--accent-text); border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
   .icon { width: 44px; height: 44px; margin: -8px 0; border: 0; background: transparent; border-radius: 50%; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
   .icon svg { width: 19px; height: 19px; }
@@ -290,6 +292,7 @@
   .mem-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .helprow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; margin: 4px 0 6px; border: 0; border-radius: 14px;
     background: var(--surface-2); color: var(--text); text-align: left; cursor: pointer; }
+  #app > .helprow { margin: 0; }   /* on its own on a page: the page's 12px gap, like every card */
   .helprow .ic { color: var(--accent-text); flex: none; }
   .helprow span:not(.chev) { flex: 1; min-width: 0; }
   .helprow b { display: block; font-size: 16px; font-weight: 600; }
@@ -345,6 +348,7 @@
   .react { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line);
     background: transparent; color: var(--muted); font: 600 13px var(--font-data); cursor: default; }
   button.react { cursor: pointer; }
+  .react.cmt-toggle { font-family: var(--font-ui); }   /* "Comment" is a word, so the text font, not the digits font */
   button.react:hover { color: var(--text); border-color: var(--line-strong); }
   .react.on { color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
   @media (prefers-reduced-motion: no-preference) { button.react:active { transform: scale(0.92); } }
@@ -371,7 +375,7 @@
   .howto summary { cursor: pointer; font-weight: 600; color: var(--accent-text); padding: 4px 0; }
   .howto ol { margin: 6px 0 4px; padding-left: 20px; display: grid; gap: 4px; }
   /* The small "i" button that unfolds a longer explanation. Round because it is an icon button; the tap area is 44px. */
-  .hinfo { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .hinfo { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .infobtn { position: relative; display: inline-grid; place-items: center; flex: none; width: 30px; height: 30px; padding: 0;
     border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
   .infobtn::after { content: ""; position: absolute; inset: -7px; }
