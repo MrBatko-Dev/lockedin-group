@@ -338,8 +338,6 @@
   .numfield span { font-size: 13px; font-weight: 600; color: var(--muted); }
   .numfield b { font: 600 15px var(--font-data); color: var(--text-2); }
   .numfield input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--text); font: 600 16px var(--font-data); outline: none; text-align: right; }
-  .numfield .numsign { flex: none; width: 44px; height: 44px; margin-right: -12px; border: 0; border-radius: 10px; background: transparent; color: var(--text-2); font: 600 18px var(--font-data); cursor: pointer; }
-  .numfield .numsign:active { color: var(--text); }
   .numfield:focus-within { box-shadow: 0 0 0 2px var(--accent); }
   #num-hint.bad { color: var(--crit-text); }
   /* P&L and R: a plain grey chip; only the numbers are green or red (the red chip is for rule breaks) */
@@ -578,6 +576,8 @@
   .panel #result-hint { margin: 10px 0 0; }
   .panel .numrow { margin-top: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* fill the row: no dead space on wide screens */
   .panel #num-hint { margin: 10px 0 4px; }
+  /* phones: P&L and R each get a full row, so long numbers like -1250.50 fit */
+  @media (max-width: 480px) { .panel .numrow { grid-template-columns: minmax(0, 1fr); } }
   .segset { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; background: var(--surface-2); border-radius: 11px; padding: 3px; }
   .segset.four { grid-template-columns: repeat(4, 1fr); margin-top: 8px; }
   .segset.two { grid-template-columns: 1fr 1fr; }
