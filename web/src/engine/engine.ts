@@ -2408,6 +2408,50 @@ function roleForKey(key) {
 }
 let profilePart = "profile";   // someone else's profile: "profile" or "journal"
 // Profile and Journal of one person. withTabs adds the small switch between the two (someone else's page, or your own Profile on phones).
+// P&L calendar on a profile: one month, Mon-Fri, the P&L each day that member typed in.
+// Which month is shown ("YYYY-MM"). null = the month of the current trading day. Not remembered.
+let pnlMonth: string | null = null;
+// Short money for a small calendar box: whole dollars, thousands as "k". The full number is in the label.
+const fmtPnlShort = (n: number): string => {
+  const a = Math.abs(n), s = n > 0 ? "+" : n < 0 ? "−" : "";
+  return s + "$" + (a >= 1000 ? (a / 1000).toLocaleString("en-US", { maximumFractionDigits: a >= 10000 ? 0 : 1 }) + "k" : Math.round(a).toLocaleString("en-US"));
+};
+function renderPnlCalendar(key: string): string {
+  const mine = Object.values(ticks).filter(r => r.member_key === key && hasNum(r.pnl));
+  if (!mine.length) return "";   // only for people who type in their P&L
+  const nowMonth = today.slice(0, 7);
+  const firstMonth = mine.reduce((a, r) => r.day.slice(0, 7) < a ? r.day.slice(0, 7) : a, nowMonth);
+  const month = pnlMonth && pnlMonth >= firstMonth && pnlMonth <= nowMonth ? pnlMonth : nowMonth;
+  const shiftMonth = (m: string, n: number): string => { const d = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+  const prev = month > firstMonth ? shiftMonth(month, -1) : "", next = month < nowMonth ? shiftMonth(month, 1) : "";
+  const title = parse(month + "-01").toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+
+  let total = 0, days = 0, rows = "";
+  for (let mon = mondayOf(month + "-01"); mon.slice(0, 7) <= month; mon = addDays(mon, 7)) {
+    rows += "<tr>" + [0, 1, 2, 3, 4].map(i => {
+      const k = addDays(mon, i);
+      if (k.slice(0, 7) !== month) return `<td></td>`;
+      const n = parse(k).getUTCDate();
+      if (!isTradingDay(k) || k > today) return `<td><div class="pday off"><span class="pd">${n}</span></div></td>`;
+      const rec = tickOf(k, key) || {}, p = hasNum(rec.pnl) ? +rec.pnl : null, r = hasNum(rec.rr) ? +rec.rr : null;
+      if (p !== null) { total += p; days++; }
+      const label = `${fmtDay(k, { weekday: "long", month: "long" })}: ${p === null ? "no P&L" : fmtPnl(p)}${r !== null ? ", " + fmtR(r) : ""}`;
+      return `<td><button class="pday ${p === null ? "" : p > 0 ? "up" : p < 0 ? "down" : "flat"} ${k === today ? "today" : ""}" data-day="${k}" title="${esc(label)}" aria-label="${esc(label)}">
+        <span class="pd">${n}</span>${p !== null ? `<b class="num">${fmtPnlShort(p)}</b>` : ""}${r !== null ? `<small class="num">${fmtR(r)}</small>` : ""}</button></td>`;
+    }).join("") + "</tr>";
+  }
+  const head = ["Mon", "Tue", "Wed", "Thu", "Fri"].map(d => `<th>${d}</th>`).join("");
+  const sum = days ? `<p class="ptotal"><b class="num ${total > 0 ? "up" : total < 0 ? "down" : ""}">${fmtPnl(Math.round(total * 100) / 100)}</b><span>over ${days} day${days === 1 ? "" : "s"} with P&amp;L</span></p>`
+    : `<p class="ptotal"><span>No P&amp;L typed in this month.</span></p>`;
+  return `<div class="card pcal-card"><div class="cardhead"><h2>P&amp;L calendar</h2><div class="nav">
+      <button class="round" data-pnl-month="${prev}" aria-label="Previous month" ${prev ? "" : "disabled"}>${ic("chevron-left", 20)}</button>
+      <span>${title}</span>
+      <button class="round" data-pnl-month="${next}" aria-label="Next month" ${next ? "" : "disabled"}>${ic("chevron-right", 20)}</button></div></div>
+    ${sum}
+    <table class="pcal"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
+    <p class="sub-hint tiles-note">Each box is the P&amp;L typed in for that day. Tap a day to open it.</p></div>`;
+}
+
 function renderProfile(key, part = "profile", withTabs = false) {
   const m = members.find(x => x.key === key);
   if (!m) return `<div class="card"><p class="msg">Member not found.</p></div>`;
@@ -2484,8 +2528,8 @@ function renderProfile(key, part = "profile", withTabs = false) {
     ? `<div class="desk"><div class="maincol">${journal}</div><div class="side">${breaksCard}${reflCard}</div></div>`
     : journal + breaksCard + reflCard);
   return tabs + (isWide()
-    ? `${head}<div class="desk even"><div class="maincol">${ach}</div><div class="side">${heat}</div></div>`
-    : head + heat + ach);
+    ? `${head}<div class="desk even"><div class="maincol">${renderPnlCalendar(key)}${ach}</div><div class="side">${heat}</div></div>`
+    : head + renderPnlCalendar(key) + heat + ach);
 }
 
 // Pop up "Achievement unlocked" when you earn a new badge (remembered per browser).
@@ -3675,7 +3719,7 @@ document.addEventListener("click", async e => {
   if (d.nav) { const [t2, v] = d.nav.split(":"); if (v) { adminView = v; error = ""; } if (settingsOpen || editing) closePanel(); setTab(t2); return; }   // the sidebar
   if (d.part) { profilePart = d.part; render(); requestAnimationFrame(pageEnter); return; }
   if (d.expand) { openRow = openRow === d.expand ? null : d.expand; render(); return; }
-  if (d.profile) { profileKey = d.profile; profilePart = "profile"; if (tab === "admin") tab = "day"; render(); requestAnimationFrame(pageEnter); return window.scrollTo(0, 0); }
+  if (d.profile) { profileKey = d.profile; profilePart = "profile"; pnlMonth = null; if (tab === "admin") tab = "day"; render(); requestAnimationFrame(pageEnter); return window.scrollTo(0, 0); }
   if (t.id === "goto-reflect") {
     openPanel(today, myKey());
     const el = document.getElementById("panel-refl") as HTMLDetailsElement;
@@ -3823,6 +3867,7 @@ document.addEventListener("click", async e => {
   if (d.makeadmin) return adminDo(memberQ({ role: "admin" }, d.makeadmin), "They're a group admin now: they can approve people, add names and excuse days.");
   if (d.unadmin) return adminDo(memberQ({ role: "member" }, d.unadmin), "Admin removed.");
   if (d.boardRange) { boardRange = d.boardRange; return render(); }
+  if (d.pnlMonth) { pnlMonth = d.pnlMonth; return render(); }
   if (d.adminView) { adminView = d.adminView; gsPart = null; flash = ""; error = ""; return render(); }
   if (d.gs !== undefined) { gsPart = d.gs || null; adminDirty = false; flash = ""; error = ""; render(); requestAnimationFrame(pageEnter); if (!isWide()) window.scrollTo(0, 0); return; }
   if (d.approveReq) return adminDo(sb.rpc("approve_group_request", { request_id: +d.approveReq }), "Group created. Its owner can open it now and share the join code.");

@@ -155,6 +155,8 @@ Pictures need internet. Signing out removes the saved copy from that phone.
 - **Pause / delete a group, change its owner:** Admin → All groups (only you see this).
 - **Getting around:** on phones, Groups, Settings and Help are the three buttons at the top of Profile. On computers they are
   at the bottom of the sidebar. The back button goes to the page before.
+- **P&L calendar:** on a profile, members who type in their P&L get a month calendar: Mon to Fri, each day's P&L in green or
+  red, the month's total on top, arrows for other months. Tap a day to open it. It only uses the P&L already saved, so no SQL.
 - **Group settings** (owner): Admin → Group settings. Six short pages: Name and look, Homework boxes, Cutoff, Discord recaps,
   Mentor server, Move to a new owner. Each page has its own Save button and saves only what is on that page.
 - **A mentor wants to see all their groups:** they sign in with Discord once. You go to Admin → All groups → Mentor servers, type a
