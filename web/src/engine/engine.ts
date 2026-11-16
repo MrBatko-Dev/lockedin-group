@@ -4160,7 +4160,9 @@ setInterval(() => {
   if (screen === "app" && tab !== "admin" && document.visibilityState === "visible") autoRender();
 }, 60000);
 // While waiting for approval in a group, check every 20 seconds so the page opens as soon as you're approved.
-setInterval(() => { if (screen === "lobby" && session && navigator.onLine && myMemberships.some(m => m.status === "pending")) loadAll().catch(() => {}); }, 20000);
+// Only while the waiting card shows: the check redraws the whole lobby, which would wipe a group request
+// or a new join code you're typing.
+setInterval(() => { if (screen === "lobby" && lobbyMode === "join" && !lobbyForm && session && navigator.onLine && myMemberships.some(m => m.status === "pending")) loadAll().catch(() => {}); }, 20000);
 
 // ---------------------------------------------------------------- pull down to refresh (phones)
 async function refreshNow() {
