@@ -509,8 +509,8 @@
   .heat td i.PARTIAL { background: var(--warn); }
   .heat td i.MISSING { background: var(--crit); }
   .heat td i.WAITING, .heat td i.UNLOGGED, .heat td i.EXCUSED { background: var(--surface-2); box-shadow: none; }
-  /* P&L calendar on a profile: flat boxes, a colored line on top for a green or red day.
-     The money stays on the card color so green and red text keep 4.5:1 in light mode too. */
+  /* P&L calendar on a profile: flat boxes, tinted green or red like the picked Win and Loss buttons
+     (the same 12% mix, so the green and red text keep 4.5:1 in light mode too). */
   .ptotal { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 12px; font-size: 14px; color: var(--muted); }
   .ptotal b { font: 650 20px var(--font-data); color: var(--text); }
   .ptotal b.up { color: var(--good-text); }
@@ -526,11 +526,11 @@
   .pday .pd { font: 600 12px var(--font-data); color: var(--muted); }
   .pday b { font: 650 12px var(--font-data); color: var(--text); white-space: nowrap; letter-spacing: -0.02em; }
   .pday small { font: 500 11px var(--font-data); color: var(--muted); white-space: nowrap; }
-  .pday.up { box-shadow: inset 0 3px 0 var(--good); }
+  .pday.up { background: color-mix(in srgb, var(--good) 12%, var(--surface)); border-color: var(--good); }
   .pday.up b { color: var(--good-text); }
-  .pday.down { box-shadow: inset 0 3px 0 var(--crit); }
+  .pday.down { background: color-mix(in srgb, var(--crit) 12%, var(--surface)); border-color: var(--crit); }
   .pday.down b { color: var(--crit-text); }
-  .pday.today { border-color: var(--accent); }
+  .pday.today:not(.up):not(.down) { border-color: var(--accent); }
   @media (min-width: 960px) { .pday { min-height: 66px; } .pday b { font-size: 14px; } }
   .jentry { padding: 12px 0; border-top: 1px solid var(--line); }
   .jentry:first-of-type { border-top: 0; padding-top: 0; }
