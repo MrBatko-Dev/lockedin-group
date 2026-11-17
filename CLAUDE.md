@@ -34,7 +34,7 @@ every trading day, so a mistake reaches real people within a minute of his push.
 
 ## 3. Map
 
-The session usually starts in the parent folder `/Users/adambatko/claude code/`. It holds:
+The session usually starts in the parent folder `/Users/adambatko/claude code/Locked In/`. It holds:
 
 | Path | What it is |
 |---|---|
