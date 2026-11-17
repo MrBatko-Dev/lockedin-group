@@ -16,3 +16,6 @@ PRODUCT.md
 web/.next/
 web/out/
 web/*.tsbuildinfo
+
+# graphify knowledge-graph cache (local only)
+graphify-out/
