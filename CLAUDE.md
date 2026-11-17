@@ -38,7 +38,7 @@ The session usually starts in the parent folder `/Users/adambatko/claude code/`.
 
 | Path | What it is |
 |---|---|
-| `lockedin/` | **The project.** The only git repository (GitHub `adambatko2009-lang/lockedin-group`) |
+| `lockedin/` | **The project.** The only git repository (GitHub `MrBatko-Dev/lockedin-group`) |
 | `.claude/launch.json` | Preview servers. `lockedin-web-dev` (port 8773) is the one to use. The others are old |
 | `.claude/hooks/block-secrets.sh`, `.claude/settings.json` | Blocks every tool call that touches a `secrets/` folder |
 | `.claude/skills/sql-update/SKILL.md` | The exact recipe for a database update. Follow it for every SQL change |
@@ -83,7 +83,7 @@ cd tests && node push-test.mjs    # Edge Function; must end with "14 passed, 0 f
   tool: `cd web && npx next dev -p 8773`. Never start a second copy if one is running.
 - There is no lint command and no unit-test framework. Do not add one unasked.
 - The GitHub CLI is at `~/.local/bin/gh` (use the full path). After Batko says "Pushed", one
-  `~/.local/bin/gh run list -R adambatko2009-lang/lockedin-group -L 3` shows the build. Check once. Never poll in a loop.
+  `~/.local/bin/gh run list -R MrBatko-Dev/lockedin-group -L 3` shows the build. Check once. Never poll in a loop.
 
 **What the local preview can and cannot show.** Signed out, it shows the front page, its "try it yourself" demo,
 and the legal pages (`?p=privacy`, `?p=terms`, `?p=why`, `?p=how`, `?p=features`). You cannot sign in locally:

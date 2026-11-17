@@ -12,12 +12,12 @@ Never open, list or mention anything in `secrets/`.
 
 ## Steps
 
-1. **Build.** Run `~/.local/bin/gh run list -R adambatko2009-lang/lockedin-group -L 3 --json status,conclusion,headSha,displayTitle,createdAt`
+1. **Build.** Run `~/.local/bin/gh run list -R MrBatko-Dev/lockedin-group -L 3 --json status,conclusion,headSha,displayTitle,createdAt`
    and `git rev-parse HEAD`.
    - The newest run must be for the same commit as `HEAD` (compare `headSha`).
    - If it is still `queued` or `in_progress`: stop here and report **Still building**, and say to ask again in about two minutes.
    - If `conclusion` is not `success`: report **Broken**, and get the failing lines with
-     `~/.local/bin/gh run view <run id> -R adambatko2009-lang/lockedin-group --log-failed | tail -30`.
+     `~/.local/bin/gh run view <run id> -R MrBatko-Dev/lockedin-group --log-failed | tail -30`.
    - If the newest run is for an older commit, say the push may not have gone through.
 
 2. **Pages answer.** For each of these, get the HTTP status with
