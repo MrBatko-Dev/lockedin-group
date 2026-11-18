@@ -1300,5 +1300,52 @@ ok((await colorOf(G3)) === "#3a7bd5" && !!(await setColor(own3, G3, "#FFF")).err
   && (await one(`select count(*)::int n from pg_constraint where conrelid='public.groups'::regclass and conname='groups_color_check'`)).n === 1,
   "running update 28 a second time keeps the custom color and the rule");
 
+// ================================================================ update 29: more than one result per day
+const u29 = readFileSync(dir + "update-29-multiple-results.sql", "utf8");
+await as("sid", `update public.ticks set no_trade = false, result = 'win' where member_key='sid' and day=$1`, [t14]);
+r = await as("sid", `update public.ticks set result = 'loss,breakeven' where member_key='sid' and day=$1`, [t14]);
+ok(!!r.error, "before update 29, two results on one day are refused");
+await db.exec(u29);
+console.log("\nloaded: update-29-multiple-results.sql");
+section("more than one result per day (update 29)");
+ok((await one(`select result from public.ticks where member_key='sid' and day=$1`, [t14])).result === "win", "a result saved before update 29 is unchanged");
+let multiOk = true;
+for (const v of ["win", "loss", "breakeven", "gamble", "loss,breakeven", "win,loss", "win,gamble", "win,loss,breakeven,gamble", "breakeven,gamble"]) {
+  r = await as("sid", `update public.ticks set result = $2 where member_key='sid' and day=$1`, [t14, v]);
+  if (r.error || r.count !== 1) { multiOk = false; console.log("   refused:", v); }
+}
+ok(multiOk, "one result, or several in the fixed order, can be saved on your own open day");
+let badMulti = true;
+for (const v of ["", "win,win", "breakeven,loss", "loss,win", "win,", ",win", "win loss", "win,jackpot", "notrade", "win,notrade", "WIN", "win;loss"]) {
+  r = await as("sid", `update public.ticks set result = $2 where member_key='sid' and day=$1`, [t14, v]);
+  if (!r.error) { badMulti = false; console.log("   accepted:", JSON.stringify(v)); }
+}
+ok(badMulti, "repeats, a different order, unknown words and empty results are refused");
+r = await as("sid", `update public.ticks set result = null where member_key='sid' and day=$1`, [t14]);
+ok(!r.error && r.count === 1, "clearing the result still works");
+await as("sid", `update public.ticks set result = 'loss,breakeven' where member_key='sid' and day=$1`, [t14]);
+r = await as("sid", `update public.ticks set no_trade = true where member_key='sid' and day=$1`, [t14]);
+ok(!!r.error, "a day still can't be no trade and have results");
+r = await as("sid", `update public.ticks set result = 'win,loss' where member_key <> 'sid'`);
+ok(!!r.error || r.count === 0, "a member can't set someone else's results");
+r = await as("sid", `update public.ticks set result = 'win,loss' where member_key='sid' and day < $1`, [t14]);
+ok(!!r.error || r.count === 0, "a member can't set results on a closed day");
+r = await as("uma", `update public.ticks set result = 'win,loss' where member_key='sid'`);
+ok(!!r.error || r.count === 0, "someone outside the group can't either");
+r = await as(null, `update public.ticks set result = 'win,loss'`);
+ok(!!r.error || r.count === 0, "a signed-out visitor can't either");
+// July 2025 has no other ticks. Its last trading day is Thursday the 31st, so the month ends mid-week.
+await db.query(`insert into public.ticks (day, member_key, chart, journal, review, result) values
+  ('2025-07-01', $1, true, true, true, 'win,loss'), ('2025-07-02', $1, true, true, true, 'loss,breakeven'), ('2025-07-03', $1, true, true, true, 'gamble')`, [k3]);
+await db.query(`delete from public.group_discord where group_id = $1`, [G3]);
+await db.query(`insert into public.group_discord (group_id, webhook_url, daily, weekly, monthly) values ($1, $2, false, false, true)`, [G3, hook24]);
+const july29 = (await due24(plus24(await closeAt(G3, "2025-07-31"), 10))).find(x => x.kind === "monthly");
+ok(!!july29 && /1W 2L/.test(july29.content), "the monthly ranking counts a day with a win and a loss as 1W and 1L");
+ok(!!(await as("sid", `select * from public.due_recaps()`)).error && !!(await as(null, `select * from public.due_recaps()`)).error, "members and visitors still can't call the recap function");
+await db.exec(u29);
+ok((await one(`select result from public.ticks where member_key='sid' and day=$1`, [t14])).result === "loss,breakeven"
+  && !!(await as("sid", `update public.ticks set result = 'win,win' where member_key='sid' and day=$1`, [t14])).error,
+  "running update 29 a second time keeps saved results and the rule");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

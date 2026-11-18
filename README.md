@@ -37,6 +37,7 @@ and tick **only their own** homework boxes. Batko is the app owner; each group h
 | `supabase/update-26-server-tags.sql` | Server tags: someone who asks for a new group can type a server's tag (like BNQ); once approved the group is on that server and its join code starts with the tag (run once, after update 25, before pushing) |
 | `supabase/update-27-mentor-group-view.sql` | A mentor can open a group on their server and look at each day's boxes and the week, without changing anything (run once, after update 26, before pushing) |
 | `supabase/update-28-custom-colors.sql` | A group owner can pick a custom color for the group, as well as the named colors (run once, after update 27, before pushing) |
+| `supabase/update-29-multiple-results.sql` | A day can have more than one result, like a loss and a break even; the Discord rankings count each (run once, after update 28, before pushing) |
 | `supabase/sign-out-everyone-except-owner.sql` | Signs everyone but you out; no data is removed (run when needed) |
 | `web/public/vendor/` | Fonts and their licenses, hosted on our own site (see `web/public/vendor/THIRD-PARTY-NOTICES.md`) |
 | `supabase/functions/send-reminders/index.ts` | Runs every 5 minutes in Supabase (Edge Functions) and deletes pictures older than 60 days. Its reminder part finds nobody since update 22 |
