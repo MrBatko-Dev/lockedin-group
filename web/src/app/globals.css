@@ -339,7 +339,7 @@
   .numfield b { font: 600 15px var(--font-data); color: var(--text-2); }
   .numfield input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--text); font: 600 16px var(--font-data); outline: none; text-align: right; }
   .numfield:focus-within { box-shadow: 0 0 0 2px var(--accent); }
-  #num-hint.bad { color: var(--crit-text); }
+  #num-hint.bad, #be-hint.bad { color: var(--crit-text); }
   /* P&L and R: a plain grey chip; only the numbers are green or red (the red chip is for rule breaks) */
   .pnlchip { display: inline-flex; align-items: center; font: 600 12px var(--font-data); padding: 2px 8px; border-radius: 6px; background: var(--surface-2); color: var(--text-2); }
   .pnlchip.up, .tile b.up { color: var(--good-text); }
@@ -530,7 +530,9 @@
   .pday.up b { color: var(--good-text); }
   .pday.down { background: color-mix(in srgb, var(--crit) 12%, var(--surface)); border-color: var(--crit); }
   .pday.down b { color: var(--crit-text); }
-  .pday.today:not(.up):not(.down) { border-color: var(--accent); }
+  .pday.be { background: color-mix(in srgb, var(--warn) 12%, var(--surface)); border-color: var(--warn); }
+  .pday.be b { color: color-mix(in srgb, var(--warn) 50%, var(--text)); }   /* plain yellow is unreadable on white */
+  .pday.today:not(.up):not(.down):not(.be) { border-color: var(--accent); }
   @media (min-width: 960px) { .pday { min-height: 66px; } .pday b { font-size: 14px; } }
   .jentry { padding: 12px 0; border-top: 1px solid var(--line); }
   .jentry:first-of-type { border-top: 0; padding-top: 0; }

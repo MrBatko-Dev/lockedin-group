@@ -1347,5 +1347,41 @@ ok((await one(`select result from public.ticks where member_key='sid' and day=$1
   && !!(await as("sid", `update public.ticks set result = 'win,win' where member_key='sid' and day=$1`, [t14])).error,
   "running update 29 a second time keeps saved results and the rule");
 
+// ================================================================ update 30: break-even value
+const u30 = readFileSync(dir + "update-30-break-even.sql", "utf8");
+await db.exec(u30);
+console.log("\nloaded: update-30-break-even.sql");
+section("break-even value (update 30)");
+const memKey30 = (await one(`select member_key from public.memberships where group_id=$1 and user_id=$2 and status='approved'`, [G3, U[mem3]])).member_key;
+const beOf = async k => (await one(`select be_limit from public.members where key=$1`, [k])).be_limit;
+ok(!!memKey30 && (await beOf(memKey30)) === null, "test setup: a normal member of Recap Crew, no break-even value yet");
+r = await rpc(mem3, "set_be_limit", [40]);
+ok(!r.error && +(await beOf(memKey30)) === 40, "a member sets their own break-even value");
+r = await as(own3, `select key, be_limit from public.members where key=$1`, [memKey30]);
+ok(!r.error && r.rows.length === 1 && +r.rows[0].be_limit === 40, "the rest of the group can read it");
+r = await as("o9", `select be_limit from public.members where key=$1`, [memKey30]);
+ok(!r.error && r.rows.length === 0, "another group can't see it");
+r = await as(mem3, `update public.members set be_limit = 5 where key=$1`, [memKey30]);
+ok(+(await beOf(memKey30)) === 40, "a member can't change it with a plain update");
+r = await as(own3, `update public.members set be_limit = 5 where key=$1`, [memKey30]);
+ok(+(await beOf(memKey30)) === 40, "the group owner can't change someone else's value");
+r = await as(own3, `update public.members set name = name where key=$1`, [memKey30]);
+ok(!r.error && r.count === 1 && +(await beOf(memKey30)) === 40, "the group owner can still edit the name row");
+const own3Key30 = (await one(`select member_key from public.memberships where group_id=$1 and user_id=$2`, [G3, U[own3]])).member_key;
+await rpc(own3, "set_be_limit", [10]);
+ok(+(await beOf(memKey30)) === 40 && (!own3Key30 || +(await beOf(own3Key30)) === 10), "setting your own value changes only your names");
+ok(!!(await rpc(mem3, "set_be_limit", [-1])).error && !!(await rpc(mem3, "set_be_limit", [100001])).error && +(await beOf(memKey30)) === 40,
+  "values below 0 or above 100,000 are refused");
+ok(!!(await rpc("anon", "set_be_limit", [5])).error, "signed-out visitors can't set one");
+r = await rpc("o9", "set_be_limit", [7]);
+ok(!r.error && +(await beOf(memKey30)) === 40, "someone in another group only changes their own names");
+ok(!!(await as(mem3, `select public.protect_be_limit()`)).error, "members can't call the guard function");
+r = await as(own3, `insert into public.members (key, name, group_id, be_limit) values ('be-new', 'Bea', $1, 90000)`, [G3]);
+ok(!r.error && (await beOf("be-new")) === null, "a group owner adding a name can't give it a break-even value");
+ok(!(await rpc(mem3, "set_be_limit", [null])).error && (await beOf(memKey30)) === null, "a member can switch it off again");
+await rpc(mem3, "set_be_limit", [25]);
+await db.exec(u30);
+ok(+(await beOf(memKey30)) === 25 && !!(await rpc(mem3, "set_be_limit", [-5])).error, "running update 30 a second time keeps the value and the rule");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

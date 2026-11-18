@@ -359,6 +359,7 @@ async function openGroup(id) {
   const failed = [m, h, t].find(r => r.error);
   if (failed) fail(failed.error, "Couldn't load the group");
   members = m.data || (snap ? snap.members : []);
+  syncBe();
   HOLIDAYS = new Set((h.data || []).map(r => r.day)); dateMemo.next.clear();
   ticks = t.ticks;
   syncedAt = t.syncedAt;
@@ -506,6 +507,8 @@ const pending = {}, timers = {};
 // edits: how many changes each row has had, so a save that finishes can tell whether a newer change
 // is still waiting. inflight: a save for that row is on its way right now.
 const edits: Record<string, number> = {}, inflight: Record<string, boolean> = {};
+// The result the app picked from your P&L while you typed (per row), so it can still change it as you keep typing.
+const autoPicked: Record<string, string | null> = {};
 // ---------------------------------------------------------------- reactions on someone's post (note or pictures)
 let reactions: Record<string, any> = {};   // "day|member" -> [{ reactor_key, user_id, kind }]
 const REACTIONS = [["fire", "flame", "Fire"], ["clean", "target", "Clean execution"], ["respect", "check", "Respect"]];
@@ -663,6 +666,10 @@ const parseNum = (v, max) => {
 const fmtPnl = n => (n > 0 ? "+" : n < 0 ? "−" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const fmtR = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "R";
 const hasNum = v => v !== null && v !== undefined && v !== "";
+// Break-even value (update 30): each member picks one in Settings. A P&L from $0 up to (not including) it
+// counts as break even; below $0 is always a loss. It sits on the member's name row so the group sees it too.
+const beOf = (key: string): number => { const m = members.find(x => x.key === key); const v = m && hasNum(m.be_limit) ? +m.be_limit : 0; return v > 0 ? v : 0; };
+const pnlKind = (p: number, be: number): "up" | "down" | "be" => p < 0 ? "down" : p < be || p === 0 ? "be" : "up";
 function pnlChipHtml(rec) {
   const p = hasNum(rec.pnl) ? +rec.pnl : null, r = hasNum(rec.rr) ? +rec.rr : null;
   if (p === null && r === null) return "";
@@ -814,6 +821,7 @@ async function loadSettings() {
     applyTheme();
   }
   settingsLoaded = true;
+  syncBe();
 }
 let settingsLoaded = false;
 async function saveSettings() {
@@ -945,12 +953,39 @@ function renderHelp() {
 
 // Settings and Groups are normal pages (no side window).
 function openSettings() { if (editing) closePanel(); setTab("settings"); }
+const BE_HINT = "A day with a P&amp;L from $0 up to this amount counts as break even and shows yellow in your P&amp;L calendar. Below $0 is a loss. Your group sees your calendar this way. Leave it empty for exactly $0.";
+// Saves the break-even value to your settings and to your name in every group (set_be_limit, update 30).
+let beTimer = null;
+async function saveBe(v: number | null): Promise<void> {
+  settings.beLimit = v;
+  saveSettings();
+  const mine = members.find(x => x.key === myKey());
+  const { error: e } = await sb.rpc("set_be_limit", { v });
+  const hint = document.getElementById("be-hint");
+  if (e) { if (hint) { hint.textContent = "Couldn't save the break-even value: " + e.message + ". Try again."; hint.classList.add("bad"); } return; }
+  if (mine) mine.be_limit = v;
+  if (hint) { hint.innerHTML = BE_HINT; hint.classList.remove("bad"); }
+}
+// Your name rows follow your setting: catches up a group you joined later, or a change made on another device.
+function syncBe(): void {
+  if (!settingsLoaded || !session) return;
+  const me = members.find(x => x.key === myKey());
+  if (!me || !("be_limit" in me)) return;   // no be_limit column: update 30 hasn't run yet
+  const want = hasNum(settings.beLimit) && +settings.beLimit > 0 ? +settings.beLimit : null, have = hasNum(me.be_limit) ? +me.be_limit : null;
+  if (want === have) return;
+  me.be_limit = want;
+  sb.rpc("set_be_limit", { v: want }).then(() => {}, () => {});
+}
 function renderSettings() {
   const opt = (v, label) => `<button data-theme-set="${v}" aria-pressed="${settings.theme === v}">${label}</button>`;
   const look = `<section class="card setpage"><div class="cardhead"><h2>Appearance</h2></div>
     <div class="segset" role="group" aria-label="Appearance">${opt("system", "System")}${opt("light", "Light")}${opt("dark", "Dark")}</div>
     <p class="sub-hint" style="margin-top:8px">Dark is the default. System follows your phone or computer.</p>
 </section>`;
+  const be = hasNum(settings.beLimit) && +settings.beLimit > 0 ? +settings.beLimit : "";
+  const beCard = `<section class="card setpage"><div class="cardhead"><h2>Break even</h2></div>
+    <div class="numrow"><label class="numfield"><span>Under</span><b aria-hidden="true">$</b><input id="set-be" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="0" value="${be}" aria-label="Break-even value in dollars" aria-describedby="be-hint"></label></div>
+    <p class="sub-hint" id="be-hint" role="status" aria-live="polite" style="margin-top:8px">${BE_HINT}</p></section>`;
   const breaks = `<section class="card setpage"><div class="cardhead"><h2>My rule breaks</h2></div><div id="settings-breaks">${customBreaksListHtml()}</div></section>`;
   const data = `<section class="card setpage"><div class="cardhead"><h2>Your data</h2></div>
     <p class="sub-hint">Download a copy of everything LockedIn stores about you, or delete your account.</p>
@@ -961,8 +996,8 @@ function renderSettings() {
   const help = `<button class="helprow" data-nav="help">${ic("help", 20)}<span><b>Help &amp; support</b><small>Questions, contact, the tutorial, the app on your phone</small></span><span class="chev" aria-hidden="true">${ic("chevron-right", 18)}</span></button>`;
   const intro = `<p class="page-intro">Only for you. Changes save to your account right away.</p>`;
   return isWide()
-    ? intro + `<div class="desk"><div class="maincol">${look}${breaks}</div><div class="side">${data}${help}</div></div>`
-    : intro + look + breaks + data + help;
+    ? intro + `<div class="desk"><div class="maincol">${look}${beCard}${breaks}</div><div class="side">${data}${help}</div></div>`
+    : intro + look + beCard + breaks + data + help;
 }
 
 // ---------------------------------------------------------------- weekly reflection
@@ -2456,6 +2491,7 @@ function renderPnlCalendar(key: string): string {
   const title = parse(month + "-01").toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
 
   let total = 0, days = 0, rows = "";
+  const be = beOf(key);
   for (let mon = mondayOf(month + "-01"); mon.slice(0, 7) <= month; mon = addDays(mon, 7)) {
     rows += "<tr>" + [0, 1, 2, 3, 4].map(i => {
       const k = addDays(mon, i);
@@ -2464,8 +2500,8 @@ function renderPnlCalendar(key: string): string {
       if (!isTradingDay(k) || k > today) return `<td><div class="pday off"><span class="pd">${n}</span></div></td>`;
       const rec = tickOf(k, key) || {}, p = hasNum(rec.pnl) ? +rec.pnl : null, r = hasNum(rec.rr) ? +rec.rr : null;
       if (p !== null) { total += p; days++; }
-      const label = `${fmtDay(k, { weekday: "long", month: "long" })}: ${p === null ? "no P&L" : fmtPnl(p)}${r !== null ? ", " + fmtR(r) : ""}`;
-      return `<td><button class="pday ${p === null ? "" : p > 0 ? "up" : p < 0 ? "down" : "flat"} ${k === today ? "today" : ""}" data-day="${k}" title="${esc(label)}" aria-label="${esc(label)}">
+      const label = `${fmtDay(k, { weekday: "long", month: "long" })}: ${p === null ? "no P&L" : fmtPnl(p) + (pnlKind(p, be) === "be" ? " (break even)" : "")}${r !== null ? ", " + fmtR(r) : ""}`;
+      return `<td><button class="pday ${p === null ? "" : pnlKind(p, be)} ${k === today ? "today" : ""}" data-day="${k}" title="${esc(label)}" aria-label="${esc(label)}">
         <span class="pd">${n}</span>${p !== null ? `<b class="num">${fmtPnlShort(p)}</b>` : ""}${r !== null ? `<small class="num">${fmtR(r)}</small>` : ""}</button></td>`;
     }).join("") + "</tr>";
   }
@@ -2478,7 +2514,7 @@ function renderPnlCalendar(key: string): string {
       <button class="round" data-pnl-month="${next}" aria-label="Next month" ${next ? "" : "disabled"}>${ic("chevron-right", 20)}</button></div></div>
     ${sum}
     <table class="pcal"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-    <p class="sub-hint tiles-note">Each box is the P&amp;L typed in for that day. Tap a day to open it.</p></div>`;
+    <p class="sub-hint tiles-note">Each box is the P&amp;L typed in for that day. Yellow is break even: ${be ? `$0 up to ${fmtPnl(be).replace("+", "")}` : "exactly $0"}. Tap a day to open it.</p></div>`;
 }
 
 function renderProfile(key, part = "profile", withTabs = false) {
@@ -3811,6 +3847,7 @@ document.addEventListener("click", async e => {
   }
   if (d.result && editing) {
     const { day, key } = editing, v = d.result;
+    delete autoPicked[day + "|" + key];   // you chose it yourself now: typing a P&L won't change it
     // Each button turns on and off by itself. No trade can't go with anything else, so picking it clears the
     // others, and picking another one clears no trade.
     editTick(day, key, row => {
@@ -4102,6 +4139,15 @@ document.addEventListener("input", e => {
     return renderKeepingFields();
   }
   if (tab === "admin" && e.target.closest && e.target.closest("#app")) adminDirty = true;
+  if (e.target.id === "set-be") {
+    const v = parseNum(e.target.value, 100000), hint = document.getElementById("be-hint");
+    if (v === undefined) return;   // still typing, like "12.": the save already waiting stays
+    clearTimeout(beTimer);
+    if (Number.isNaN(v) || v < 0) { hint.textContent = "Numbers only, from 0 to 100,000, like 40 or 12.50."; hint.classList.add("bad"); return; }
+    hint.innerHTML = BE_HINT; hint.classList.remove("bad");
+    beTimer = setTimeout(() => saveBe(v ? v : null), 700);
+    return;
+  }
   if (e.target.id === "terms-ok") { document.getElementById("accept-terms").disabled = !e.target.checked; return; }
   if ((e.target.id === "panel-pnl" || e.target.id === "panel-rr") && editing) {
     const isPnl = e.target.id === "panel-pnl", v = parseNum(e.target.value, isPnl ? 10000000 : 100), hint = document.getElementById("num-hint");
@@ -4110,11 +4156,15 @@ document.addEventListener("input", e => {
     if (Number.isNaN(v)) { hint.textContent = isPnl ? "Numbers only, like 420 or -150.50." : "Numbers only, like 2 or -1, between -100 and 100."; hint.classList.add("bad"); return; }
     hint.textContent = "Optional. For a loss, type a minus, like -150. Your group sees it."; hint.classList.remove("bad");
     const { day, key } = editing;
+    const tid = day + "|" + key;
     editTick(day, key, row => {
       row[isPnl ? "pnl" : "rr"] = v;
-      // no result picked yet: a P&L (or else an R) picks Win or Loss
-      const lead = hasNum(row.pnl) ? +row.pnl : hasNum(row.rr) ? +row.rr : 0;
-      if (!row.no_trade && !row.result && lead) row.result = lead > 0 ? "win" : "loss";
+      // No result picked yet (or the one the app picked earlier while you typed): a P&L picks Win, Loss or
+      // Break even (see beOf), or else an R picks Win or Loss. A result you tapped yourself is never changed.
+      if (row.no_trade || (row.result && row.result !== autoPicked[tid])) return;
+      const p = hasNum(row.pnl) ? +row.pnl : null, rr = hasNum(row.rr) ? +row.rr : 0;
+      const k = p !== null ? pnlKind(p, beOf(key)) : rr > 0 ? "up" : rr < 0 ? "down" : "";
+      row.result = autoPicked[tid] = k === "up" ? "win" : k === "down" ? "loss" : k === "be" ? "breakeven" : null;
     }, true);
     const rec = tickOf(day, key) || {};
     document.querySelectorAll("[data-result]").forEach(b => b.setAttribute("aria-pressed", String(resultsOf(rec).includes(b.dataset.result))));
