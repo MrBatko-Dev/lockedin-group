@@ -4246,8 +4246,9 @@ async function refreshNow() {
 })();
 
 // ---------------------------------------------------------------- tutorial
-// A three-step tour that points at the real buttons. It starts by itself after you tick your first box, so the first
-// thing a new member does is the real thing. "Skip tutorial" ends it for good.
+// A tour of the whole app that points at the real buttons: Today first, then Week, Ranking, Profile (and Admin for
+// owners and admins). A step with a tab opens that tab by itself. It starts after you tick your first box, so the
+// first thing a new member does is the real thing. "Skip tutorial" ends it for good, and it always ends on Today.
 // Replay it from Help. Remembered in your settings, so it doesn't come back on another device.
 let tour = null;   // { i, steps }
 function listText(a) { return a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a[0] || ""; }
@@ -4257,17 +4258,44 @@ function tourSteps() {
   const q = sel => () => document.querySelector(sel);
   const tabEl = t => wide ? null : q(`.tabbar [data-tab="${t}"]`);
   const myRow = () => { const b = document.querySelector(`.member [data-tick^="${me}:"]`) || document.querySelector(`[data-edit="${me}"]`); return b && b.closest(".member"); };
-  const steps = [
-    { el: q("#app .daysum"), title: "Finish before the cutoff",
-      text: `Required: ${esc(listText(req))}. Tick ${req.length > 1 ? "them all" : "it"} and your circle turns green.`
-        + (bonus.length ? ` ${esc(listText(bonus))} ${bonus.length > 1 ? "are bonus boxes" : "is a bonus box"}: extra points.` : "")
-        + ` You can tick until ${hh(CUTOFF_HOUR)} ${esc(tzCity(TZ))} time on the next trading day. This card shows the time left and who is done.` },
-    mine && { el: wide ? q(`[data-edit="${me}"]`) : q(".quick .qnote"), title: "Note and pictures",
-      text: "Write a note and add your chart screenshots" + (wide ? " (you can paste them with ⌘V / Ctrl+V)" : "") + ". It saves by itself, and your group can see it." },
-    { el: () => { const m = [...document.querySelectorAll("#app .member")].find(x => !x.querySelector(`[data-edit="${me}"]`)); return m; }, title: "Your group",
-      text: "Each circle is one person's day: green complete, yellow partial, red missing. Week and Ranking are in the " + (wide ? "sidebar" : "bar at the bottom") + ". You can replay this from Help." },
+  const pts = (n: number) => `${n} ${n === 1 ? "point" : "points"}`;
+  // The first reaction button on someone else's post. None yet: the card sits in the middle instead.
+  const reactEl = () => { const b = document.querySelector("#app .member button.react"); return b && b.parentElement; };
+  const owner = isGroupOwner(g);
+  type TourStep = { tab: string; el: (() => Element | null) | null; title: string; text: string };
+  const steps: (TourStep | false)[] = [
+    { tab: "day", el: q("#app .daysum"), title: "Finish before the cutoff",
+      text: `This card shows the time left, how many are done and who is still open. You can tick until ${hh(CUTOFF_HOUR)} ${esc(tzCity(TZ))} time`
+        + " on the next trading day. Then the day closes and nobody can change it." },
+    mine && { tab: "day", el: wide ? myRow : q("#app .quick"), title: "Your boxes",
+      text: `Required: ${esc(listText(req))}. Tick ${req.length > 1 ? "them all" : "it"} and your circle turns green: ${pts(POINTS.COMPLETE)}.`
+        + (req.length > 1 ? ` Only some of them: ${pts(POINTS.PARTIAL)}.` : "")
+        + (bonus.length ? ` ${esc(listText(bonus))} ${bonus.length > 1 ? "are bonus boxes" : "is a bonus box"}: +${pts(POINTS.bonus)} each.` : "") },
+    mine && { tab: "day", el: wide ? q(`[data-edit="${me}"]`) : q("#app .quick .qnote"), title: "Note and pictures",
+      text: "Write a note and add your chart screenshots" + (wide ? " (you can paste them with ⌘V / Ctrl+V)" : "") + "."
+        + " In the same place you set the day's result, your P&amp;L and R, and any rules you broke. It saves by itself, and your group can see it." },
+    { tab: "day", el: () => [...document.querySelectorAll("#app .member")].find(x => !x.querySelector(`[data-edit="${me}"]`)) || null, title: "Your group",
+      text: "Each row is one person's day. Green: done. Yellow: partly done. Red: missing. Tap a name to see that person's profile." },
+    { tab: "day", el: reactEl, title: "React and comment",
+      text: "When a friend posts a note or pictures, you can react with Fire, Clean execution or Respect, and leave a comment."
+        + " If a post breaks your group's rules, report it to the owner." },
+    { tab: "week", el: q("#app .grid-wrap"), title: "Week",
+      text: "The whole group's week. Each square is one person's day. Tap a square to open that day, and use the arrows at the top to go back to older weeks." },
+    { tab: "board", el: q("#app .lb"), title: "Ranking",
+      text: "Points for finished homework, for this week, this month or all time. Your streak counts complete days in a row."
+        + " A day that is partly done or missed starts it again from 0." },
+    { tab: "me", el: q("#app .tiles"), title: "Your profile",
+      text: "Your streak, points, badges and results, and a calendar of your P&amp;L. "
+        + (wide ? "Settings and Help are in the sidebar." : "Groups, Settings and Help are at the top of this page.") + " You can replay this tutorial from Help." },
+    isAdmin && { tab: "admin", el: q("#app .card"), title: owner ? "You run this group" : "You're an admin",
+      text: owner
+        ? "Approve people who ask to join, share your join code, correct ticks and excuse days. Boxes, points and the cutoff are in Group settings."
+        : "Approve people who ask to join, correct ticks and excuse days. Only the owner changes the group's settings." },
+    { tab: "day", el: null, title: "Fridays and days off",
+      text: "On the last trading day of the week, usually Friday, you write a short reflection: what went well and what to fix."
+        + " Sick or travelling? Ask the owner or an admin to excuse the day, so your streak stays." },
   ];
-  return steps.filter(Boolean);
+  return steps.filter(Boolean) as TourStep[];
 }
 // Called after you tick one of your own boxes. A short pause first, so you see the tick land before the tour covers the page.
 let tourTimer = null;
@@ -4293,11 +4321,20 @@ function endTour() {
   tour = null;
   document.getElementById("tour").hidden = true;
   document.body.style.overflow = "";
+  if (tab !== "day") { tab = "day"; profileKey = null; selected = today; render(); }   // skipped on another tab: back to Today
   window.scrollTo(0, 0);
   if (!settings.tutorialDone) { settings.tutorialDone = true; saveSettings(); }
 }
 function showTourStep() {
   const st = tour.steps[tour.i], n = tour.steps.length, last = tour.i === n - 1;
+  // Open the step's tab. Not saved as your last tab: the tour only borrows it.
+  if (st.tab && tab !== st.tab) {
+    tab = st.tab; profileKey = null;
+    if (tab === "day") selected = today;
+    if (tab === "week") weekStart = mondayOf(today);
+    if (tab === "admin") adminView = "people";
+    render(); window.scrollTo(0, 0);
+  }
   document.getElementById("tour-n").textContent = `${tour.i + 1} / ${n}`;
   document.getElementById("tour-title").textContent = st.title;
   document.getElementById("tour-text").innerHTML = st.text;
