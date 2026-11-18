@@ -532,7 +532,9 @@
   .pday.down b { color: var(--crit-text); }
   .pday.be { background: color-mix(in srgb, var(--warn) 12%, var(--surface)); border-color: var(--warn); }
   .pday.be b { color: color-mix(in srgb, var(--warn) 50%, var(--text)); }   /* plain yellow is unreadable on white */
-  .pday.today:not(.up):not(.down):not(.be) { border-color: var(--accent); }
+  .pday.zero { background: var(--surface-2); border-color: var(--muted); }
+  .pday.zero b { color: var(--muted); }
+  .pday.today:not(.up):not(.down):not(.be):not(.zero) { border-color: var(--accent); }
   @media (min-width: 960px) { .pday { min-height: 66px; } .pday b { font-size: 14px; } }
   .jentry { padding: 12px 0; border-top: 1px solid var(--line); }
   .jentry:first-of-type { border-top: 0; padding-top: 0; }

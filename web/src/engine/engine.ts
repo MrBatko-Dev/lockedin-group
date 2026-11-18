@@ -666,10 +666,11 @@ const parseNum = (v, max) => {
 const fmtPnl = n => (n > 0 ? "+" : n < 0 ? "−" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const fmtR = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "R";
 const hasNum = v => v !== null && v !== undefined && v !== "";
-// Break-even value (update 30): each member picks one in Settings. A P&L from $0 up to (not including) it
-// counts as break even; below $0 is always a loss. It sits on the member's name row so the group sees it too.
+// Break-even value (update 30): each member picks one in Settings. A P&L above $0 and below it counts as
+// break even; below $0 is always a loss; exactly $0 means no trade that day (gray, no result picked).
+// It sits on the member's name row so the group sees it too.
 const beOf = (key: string): number => { const m = members.find(x => x.key === key); const v = m && hasNum(m.be_limit) ? +m.be_limit : 0; return v > 0 ? v : 0; };
-const pnlKind = (p: number, be: number): "up" | "down" | "be" => p < 0 ? "down" : p < be || p === 0 ? "be" : "up";
+const pnlKind = (p: number, be: number): "up" | "down" | "be" | "zero" => p < 0 ? "down" : p === 0 ? "zero" : p < be ? "be" : "up";
 function pnlChipHtml(rec) {
   const p = hasNum(rec.pnl) ? +rec.pnl : null, r = hasNum(rec.rr) ? +rec.rr : null;
   if (p === null && r === null) return "";
@@ -953,7 +954,7 @@ function renderHelp() {
 
 // Settings and Groups are normal pages (no side window).
 function openSettings() { if (editing) closePanel(); setTab("settings"); }
-const BE_HINT = "A day with a P&amp;L from $0 up to this amount counts as break even and shows yellow in your P&amp;L calendar. Below $0 is a loss. Your group sees your calendar this way. Leave it empty for exactly $0.";
+const BE_HINT = "A day with a P&amp;L above $0 and under this amount counts as break even and shows yellow in your P&amp;L calendar. Below $0 is a loss, and exactly $0 is a no trade day in gray. Your group sees your calendar this way.";
 // Saves the break-even value to your settings and to your name in every group (set_be_limit, update 30).
 let beTimer = null;
 async function saveBe(v: number | null): Promise<void> {
@@ -2500,7 +2501,7 @@ function renderPnlCalendar(key: string): string {
       if (!isTradingDay(k) || k > today) return `<td><div class="pday off"><span class="pd">${n}</span></div></td>`;
       const rec = tickOf(k, key) || {}, p = hasNum(rec.pnl) ? +rec.pnl : null, r = hasNum(rec.rr) ? +rec.rr : null;
       if (p !== null) { total += p; days++; }
-      const label = `${fmtDay(k, { weekday: "long", month: "long" })}: ${p === null ? "no P&L" : fmtPnl(p) + (pnlKind(p, be) === "be" ? " (break even)" : "")}${r !== null ? ", " + fmtR(r) : ""}`;
+      const label = `${fmtDay(k, { weekday: "long", month: "long" })}: ${p === null ? "no P&L" : fmtPnl(p) + ({ be: " (break even)", zero: " (no trade)" }[pnlKind(p, be)] || "")}${r !== null ? ", " + fmtR(r) : ""}`;
       return `<td><button class="pday ${p === null ? "" : pnlKind(p, be)} ${k === today ? "today" : ""}" data-day="${k}" title="${esc(label)}" aria-label="${esc(label)}">
         <span class="pd">${n}</span>${p !== null ? `<b class="num">${fmtPnlShort(p)}</b>` : ""}${r !== null ? `<small class="num">${fmtR(r)}</small>` : ""}</button></td>`;
     }).join("") + "</tr>";
@@ -2514,7 +2515,7 @@ function renderPnlCalendar(key: string): string {
       <button class="round" data-pnl-month="${next}" aria-label="Next month" ${next ? "" : "disabled"}>${ic("chevron-right", 20)}</button></div></div>
     ${sum}
     <table class="pcal"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-    <p class="sub-hint tiles-note">Each box is the P&amp;L typed in for that day. Yellow is break even: ${be ? `$0 up to ${fmtPnl(be).replace("+", "")}` : "exactly $0"}. Tap a day to open it.</p></div>`;
+    <p class="sub-hint tiles-note">Each box is the P&amp;L typed in for that day. ${be ? `Yellow is break even: above $0 and under ${fmtPnl(be).replace("+", "")}. ` : ""}Gray is $0, no trade. Tap a day to open it.</p></div>`;
 }
 
 function renderProfile(key, part = "profile", withTabs = false) {
