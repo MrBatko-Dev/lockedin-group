@@ -503,6 +503,9 @@ function subscribe() {
 
 // One save at a time per row; quick taps are combined into one save.
 const pending = {}, timers = {};
+// edits: how many changes each row has had, so a save that finishes can tell whether a newer change
+// is still waiting. inflight: a save for that row is on its way right now.
+const edits: Record<string, number> = {}, inflight: Record<string, boolean> = {};
 // ---------------------------------------------------------------- reactions on someone's post (note or pictures)
 let reactions: Record<string, any> = {};   // "day|member" -> [{ reactor_key, user_id, kind }]
 const REACTIONS = [["fire", "flame", "Fire"], ["clean", "target", "Clean execution"], ["respect", "check", "Respect"]];
@@ -680,12 +683,16 @@ function editTick(k, key, mutate, quiet?) {
   row.images = [...(row.images || [])];
   row.rule_breaks = [...(row.rule_breaks || [])];
   mutate(row);
-  ticks[id] = row; pending[id] = true; noteState[id] = "saving"; ticksChanged();
+  ticks[id] = row; pending[id] = true; edits[id] = (edits[id] || 0) + 1; noteState[id] = "saving"; ticksChanged();
   if (quiet) renderTop(); else render();
   clearTimeout(timers[id]);
   timers[id] = setTimeout(() => saveTick(id), quiet ? 1200 : 450);   // quiet = typing a note
 }
 async function saveTick(id) {
+  // Never two saves for the same row at once: they could arrive in the wrong order and an older one would win.
+  if (inflight[id]) { clearTimeout(timers[id]); timers[id] = setTimeout(() => saveTick(id), 300); return; }
+  inflight[id] = true;
+  const sent = edits[id];
   const row = ticks[id];
   const body = { day: row.day, member_key: row.member_key, chart: !!row.chart, journal: !!row.journal, review: !!row.review, social: !!row.social, box5: !!row.box5, box6: !!row.box6, note: row.note || "", images: row.images || [], excused: !!row.excused, no_trade: !!row.no_trade, result: row.no_trade ? null : (row.result || null), pnl: row.pnl ?? null, rr: row.rr ?? null, rule_breaks: row.rule_breaks || [] };
   saving++; noteState[id] = "saving"; renderTop();
@@ -694,7 +701,12 @@ async function saveTick(id) {
   else try { ({ error: e } = await sb.from("ticks").upsert(body, { onConflict: "day,member_key" })); }
   catch (err) { e = { message: "network: " + err.message }; }
   saving--;
-  delete pending[id];
+  inflight[id] = false;
+  // If you changed something while this was saving (cleared R right after P&L), that change is still waiting
+  // to be saved. Keep the row marked as yours until it is, so the live echo of this older save
+  // can't put the old value back.
+  const newer = edits[id] !== sent;
+  if (!newer) delete pending[id];
   if (e && isNetErr(e)) {
     // No internet: keep it on this device and upload it when the connection is back.
     const o = getOutbox(); o[id] = body; putOutbox(o);
@@ -706,14 +718,14 @@ async function saveTick(id) {
     noteState[id] = "error";
     // Reload the real row, but your typed note stays in the box and in the backup on this device.
     const { data } = await sb.from("ticks").select("*").eq("day", row.day).eq("member_key", row.member_key).maybeSingle();
-    if (data) ticks[id] = data; else delete ticks[id];
+    if (!newer) { if (data) ticks[id] = data; else delete ticks[id]; }
   } else {
     error = "";
     const o = getOutbox();
     if (o[id]) { delete o[id]; putOutbox(o); }   // this newer save replaces one that waited offline
     flushOutbox();
     // If you kept typing while this was saving, the next save is already queued.
-    noteState[id] = ticks[id] && (ticks[id].note || "") !== body.note ? "saving" : "saved";
+    noteState[id] = newer || (ticks[id] && (ticks[id].note || "") !== body.note) ? "saving" : "saved";
     const d = getDraft(id);
     if (d && d.text === body.note) dropDraft(id);
   }
@@ -1292,6 +1304,7 @@ function openPanel(day, key) {
     setTimeout(() => editTick(day, key, row => { row.note = draft.text; }, true), 0);
   } else if (draft) dropDraft(id);
   if (noteState[id] === "saved") delete noteState[id];
+  confirmShot = "";
   panel.innerHTML = `<div class="grab" aria-hidden="true"></div>
     <header><div><b id="panel-title" role="heading" aria-level="2">${inlineOK(day) ? "Note &amp; pictures" : esc(m ? m.name : key)}</b><span>${fmtDay(day, { weekday: "long", month: "long" })}</span></div>
       <button class="round" id="panel-close" aria-label="Close">${SYM.x}</button></header>
@@ -1398,6 +1411,10 @@ document.addEventListener("keydown", e => {
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 });
 
+// Every redraw (a save, someone ticking a box) used to rebuild the pictures, which made them blink and
+// undid a first tap on "Delete". Now they are only rebuilt when something in them changed, and the
+// picture waiting for its second "Delete?" tap stays that way.
+let confirmShot = "", picsDrawn: [Element | null, string] = [null, ""];
 function renderPanelPics() {
   if (!editing) return;
   const { day, key } = editing;
@@ -1406,10 +1423,11 @@ function renderPanelPics() {
   ensureShotUrls(images);
   const tiles = images.map((p, i) => `<div class="pic">
       <button class="open" data-view-shot="${key}|${esc(p)}" aria-label="Open picture ${i + 1}" style="${shotUrls[p] ? `background-image:url('${shotUrls[p]}')` : ""}"></button>
-      <button class="remove" data-remove-shot="${esc(p)}" aria-label="Delete picture ${i + 1}">${SYM.x}</button></div>`).join("")
+      <button class="remove" data-remove-shot="${esc(p)}" aria-label="Delete picture ${i + 1}"${confirmShot === p ? ` data-confirm="1">Delete?` : `>${SYM.x}`}</button></div>`).join("")
     + Array.from({ length: busy }, () => `<div class="pic busy">Uploading…</div>`).join("")
     + (images.length + busy < MAX_SHOTS ? `<button class="addpic" data-add-shot="${key}">${SVG.camera}Add picture${matchMedia("(hover: hover)").matches ? `<small>or paste ⌘V / drop here</small>` : ""}</button>` : "");
-  document.getElementById("panel-pics").innerHTML = tiles;
+  const box = document.getElementById("panel-pics");
+  if (picsDrawn[0] !== box || picsDrawn[1] !== tiles) { box.innerHTML = tiles; picsDrawn = [box, tiles]; }
   document.getElementById("panel-pics-count").textContent = `· ${images.length}/${MAX_SHOTS}`;
 }
 
@@ -3820,7 +3838,8 @@ document.addEventListener("click", async e => {
   }
   if (t.id === "panel-close" || t.id === "panel-done") return closePanel();
   if (d.removeShot) {
-    if (t.dataset.confirm !== "1") { t.dataset.confirm = "1"; t.textContent = "Delete?"; return; }
+    if (t.dataset.confirm !== "1") { confirmShot = d.removeShot; t.dataset.confirm = "1"; t.textContent = "Delete?"; return; }
+    confirmShot = "";
     return removeShot(editing.day, editing.key, d.removeShot);
   }
   if (d.addShot) { shotTarget = { day: selected, key: d.addShot }; const inp = document.getElementById("shotinput"); inp.value = ""; inp.click(); return; }
@@ -4058,6 +4077,22 @@ document.addEventListener("click", async e => {
     case "pw": weekStart = addDays(weekStart, -7); return render();
     case "nw": weekStart = addDays(weekStart, 7); return render();
   }
+});
+// Bullet points in the note and the weekly reflection: on a line that starts with "- ", Enter starts
+// the next line with "- " too. Enter on a line that is only "- " removes the dash and the list ends.
+document.addEventListener("beforeinput", (e: InputEvent) => {
+  if ((e.inputType !== "insertLineBreak" && e.inputType !== "insertParagraph") || e.isComposing) return;
+  const ta = e.target as HTMLTextAreaElement;
+  if (!ta || ta.tagName !== "TEXTAREA" || (ta.id !== "panel-note" && !ta.dataset.refl)) return;
+  const at = ta.selectionStart;
+  if (at !== ta.selectionEnd) return;
+  const v = ta.value, start = v.lastIndexOf("\n", at - 1) + 1, endAt = v.indexOf("\n", at), end = endAt < 0 ? v.length : endAt;
+  const m = /^(\s*)- /.exec(v.slice(start, at));
+  if (!m) return;
+  e.preventDefault();
+  if (/^\s*-\s*$/.test(v.slice(start, end))) ta.setRangeText("", start, end, "end");
+  else ta.setRangeText("\n" + m[1] + "- ", at, at, "end");
+  ta.dispatchEvent(new Event("input", { bubbles: true }));   // saves it like normal typing
 });
 document.addEventListener("input", e => {
   if (e.target.dataset && e.target.dataset.cbox) { commentDrafts[e.target.dataset.cbox] = e.target.value; return; }
