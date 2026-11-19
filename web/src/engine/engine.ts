@@ -132,7 +132,6 @@ const SVG = {
   day: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>`,
   week: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>`,
   board: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 20V11M12 20V5M18 20v-6"/></svg>`,
-  feed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 9h8M8 12h5"/></svg>`,
   me: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6c1.4-2.2 3.4-3.3 5.8-3.3s4.4 1.1 5.8 3.3"/></svg>`,
   admin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 11l2 2 4-4"/></svg>`,
   gear: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`,
@@ -1893,7 +1892,7 @@ const pendingCount = () => people.filter(p => p.status === "pending").length;
 // Everything waiting on the Admin tab (the phone tab bar shows one number for both lists).
 const adminWaiting = () => pendingCount() + (isAppOwner ? requests.filter(r => r.status === "pending").length : 0);
 
-function tabsList() { return isAdmin ? ["day", "week", "board", "feed", "admin", "me"] : ["day", "week", "board", "feed", "me"]; }
+function tabsList() { return isAdmin ? ["day", "week", "board", "admin", "me"] : ["day", "week", "board", "me"]; }
 
 // "17h 07m left", or "42m left" in the last hour. With html, only the digits are in the mono face.
 function leftText(mins, html = false) {
@@ -2003,7 +2002,7 @@ function morphNode(a, b) {
   if (a.tagName === "SELECT" && !typing) a.value = b.value;
 }
 
-const PAGE_TITLE = { day: "Today", week: "Week", board: "Ranking", feed: "Feed", journal: "Journal", me: "Profile", admin: "Admin", help: "Help & support", settings: "Settings", groups: "Groups" };
+const PAGE_TITLE = { day: "Today", week: "Week", board: "Ranking", journal: "Journal", me: "Profile", admin: "Admin", help: "Help & support", settings: "Settings", groups: "Groups" };
 function renderTop() {
   renderNoteStatus();
   renderErrBar();
@@ -2083,7 +2082,6 @@ function renderRail() {
     ${item("day", "", SVG.day, "Today")}
     ${item("week", "", SVG.week, "Week")}
     ${item("board", "", SVG.board, "Ranking")}
-    ${item("feed", "", SVG.feed, "Feed")}
     <p class="rail-h">You</p>
     ${item("me", "", meIcon(), "Profile", "", "toggleme")}
     ${item("journal", "", ic("book", 19), "Journal")}
@@ -2104,7 +2102,7 @@ function renderTabbar() {
   const bar = document.getElementById("tabbar");
   bar.hidden = screen !== "app";
   if (screen !== "app") return;
-  const list = tabsList(), labels = { day: "Today", week: "Week", board: "Ranking", feed: "Feed", admin: "Admin", me: "Profile" };
+  const list = tabsList(), labels = { day: "Today", week: "Week", board: "Ranking", admin: "Admin", me: "Profile" };
   const cur = /^(journal|settings|groups|help)$/.test(tab) ? "me" : tab, i = Math.max(0, list.indexOf(cur));
   morph(bar, `<div class="pill" style="width:calc((100% - 10px) / ${list.length});transform:translateX(${i * 100}%);opacity:${list.includes(cur) ? 1 : 0}" aria-hidden="true"></div>` +
     list.map(t => `<button data-tab="${t}"${t === cur ? ' aria-current="page"' : ""} aria-label="${labels[t]}">${t === "admin" ? SVG.gear : t === "me" ? meIcon() : SVG[t]}<span>${labels[t]}</span>
@@ -2682,37 +2680,6 @@ const COLORS = [["blue", "Blue"], ["green", "Green"], ["orange", "Orange"], ["re
 const COMMON_TZ = ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Toronto", "America/Sao_Paulo",
   "Europe/London", "Europe/Oslo", "Europe/Stockholm", "Europe/Berlin", "Europe/Paris", "Europe/Amsterdam", "Europe/Madrid", "Europe/Warsaw",
   "Africa/Lagos", "Africa/Johannesburg", "Asia/Dubai", "Asia/Kolkata", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Tokyo", "Australia/Sydney"];
-
-// ---------------------------------------------------------------- feed: everyone's notes and pictures, newest first
-// Built from the ticks the app already has, so it shows exactly what the Today page shows, just all in one place.
-// Reactions, comments and reports use the same buttons (and the same click branches) as on Today.
-const FEED_STEP = 20;
-let feedShown = FEED_STEP;   // how many posts are showing; "Show more" adds another FEED_STEP
-function renderFeed(): string {
-  // The last 60 days only: pictures are deleted after 60 days, and reactions are only loaded for the last 70.
-  const keys = new Set(activeMembers().map(m => m.key)), from = addDays(today, -60);
-  const posts = Object.values(ticks).filter(r => r.day >= from && keys.has(r.member_key) && (r.note || (r.images || []).length))
-    .sort((a, b) => b.day.localeCompare(a.day) || (b.updated_at || "").localeCompare(a.updated_at || ""));
-  if (!posts.length) return `<div class="feed"><div class="card"><div class="cardhead"><h2>Feed</h2></div>
-    <p class="empty">No notes or pictures in the last 60 days. Add yours from Today, under your boxes.</p></div></div>`;
-  const show = posts.slice(0, feedShown);
-  ensureShotUrls(show.flatMap(r => r.images || []));
-  const dayName = (k: string): string => k === today ? "Today" : k === prevTrading(today) && k === addDays(today, -1) ? "Yesterday" : fmtDay(k);
-  // One card per day, posts inside it.
-  const days: string[] = [...new Set(show.map(r => r.day))];
-  const cards = days.map(k => `<section class="card feedday"><div class="cardhead"><h2>${esc(dayName(k))}</h2></div>${show.filter(r => r.day === k).map(r => {
-    const m = members.find(x => x.key === r.member_key), images = r.images || [];
-    return `<article class="post">
-      <div class="mrow"><span class="name">${avatarHtml(m, 26)}<button class="namebtn" data-profile="${esc(m.key)}">${esc(m.name)}</button>${m.key === myKey() ? `<span class="you">You</span>` : ""}${resultTag(r)}</span>${dot(statusOf(k, m.key), m.name)}</div>
-      ${r.note ? `<div class="note"><p>${linkify(r.note)}</p>${canReport(k, m.key) ? `<button class="reportlink" data-report-note="${k}|${esc(m.key)}">Report note</button>` : ""}</div>` : ""}
-      ${images.length ? `<div class="shots">${images.map((p, i) => `<button class="shot" data-view-shot="${esc(m.key)}|${esc(p)}" aria-label="Picture ${i + 1} from ${esc(m.name)}, ${esc(fmtDay(k))}"
-        style="${shotUrls[p] ? `background-image:url('${shotUrls[p]}')` : ""}"></button>`).join("")}</div>` : ""}
-      ${reactBarHtml(k, m.key)}${commentsPanelHtml(k, m.key)}
-    </article>`;
-  }).join("")}</section>`).join("");
-  const more = posts.length > feedShown ? `<button class="btn plain feedmore" data-feed-more="1">Show more</button>` : "";
-  return `<div class="feed"><p class="page-hint">Everyone's notes and pictures from the last 60 days, newest first. React or comment the same way as on Today.</p>${cards}${more}</div>`;
-}
 
 // ---------------------------------------------------------------- insights (group owner and admins)
 // Worked out on this device from the ticks the app has already loaded, so nothing new is asked from the database.
@@ -3830,7 +3797,6 @@ function render() {
   else if (profileKey) html = renderProfile(profileKey, profilePart, true);
   else if (tab === "week") html = renderWeek() + renderReflections();
   else if (tab === "board") html = renderBoard();
-  else if (tab === "feed") html = renderFeed();
   else if (tab === "help") html = renderHelp();
   else if (tab === "settings") html = renderSettings();
   else if (tab === "groups") html = renderGroups();
@@ -3920,7 +3886,6 @@ document.addEventListener("click", async e => {
     if (to) to.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     return;
   }
-  if (d.feedMore) { feedShown += FEED_STEP; return render(); }
   if (d.tab) return setTab(d.tab);
   if (d.lobby) { lobbyMode = d.lobby; joinMsg = ""; render(); const f = document.getElementById(d.lobby === "create" ? "req-name" : "joincode"); if (f) f.focus(); return; }
   // the left bar while a mentor server is open: leave the server first
