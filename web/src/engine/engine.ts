@@ -113,6 +113,9 @@ const ICON_PATHS = {
   server: `<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>`,
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/>',
   plus: '<path d="M12 5.5v13M5.5 12h13"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  "arrow-up": '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  "arrow-down": '<path d="M12 5v14M6 13l6 6 6-6"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 };
 const ic = (name, px = 16) => `<svg class="ic" viewBox="0 0 24 24" width="${px}" height="${px}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] || ""}</svg>`;
@@ -2048,7 +2051,7 @@ function renderTop() {
 
 // Computers: the sidebar on the left. One page per thing, grouped: your group, you, and (for admins) running the group.
 function adminViews() {
-  return [["people", "People"], isGroupOwner() && ["group", "Group settings"], isAppOwner && ["all", "All groups"]].filter(Boolean);
+  return [["people", "People"], ["insights", "Insights"], isGroupOwner() && ["group", "Group settings"], isAppOwner && ["all", "All groups"]].filter(Boolean);
 }
 function fixAdminView() { if (!adminViews().some(v => v[0] === adminView)) adminView = "people"; }
 function renderRail() {
@@ -2084,6 +2087,7 @@ function renderRail() {
     ${item("journal", "", ic("book", 19), "Journal")}
     ${isAdmin ? `<p class="rail-h">Admin</p>
     ${item("admin", "people", SVG.admin, "People", badge(pendingCount()), "toggleadmin")}
+    ${item("admin", "insights", ic("trend", 19), "Insights")}
     ${isGroupOwner() ? item("admin", "group", SVG.gear, "Group settings") : ""}
     ${isAppOwner ? item("admin", "all", ic("layers", 19), "All groups", badge(reqs)) : ""}` : ""}
     ${mentor}
@@ -2677,6 +2681,109 @@ const COMMON_TZ = ["America/New_York", "America/Chicago", "America/Denver", "Ame
   "Europe/London", "Europe/Oslo", "Europe/Stockholm", "Europe/Berlin", "Europe/Paris", "Europe/Amsterdam", "Europe/Madrid", "Europe/Warsaw",
   "Africa/Lagos", "Africa/Johannesburg", "Asia/Dubai", "Asia/Kolkata", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Tokyo", "Australia/Sydney"];
 
+// ---------------------------------------------------------------- insights (group owner and admins)
+// Worked out on this device from the ticks the app has already loaded, so nothing new is asked from the database.
+// A member only counts from the first day they logged anything. Excused days, "not logged" days (nobody logged
+// anything) and today while it is still open never count against anyone.
+const INS_DAYS = 20;   // "the last 4 weeks" = the last 20 closed trading days
+// The last n trading days whose cutoff has passed, newest first.
+function closedDaysBack(n: number, from?: string): string[] {
+  const out: string[] = [];
+  let k = from || (isFinal(today) ? today : prevTrading(today));
+  while (out.length < n) { out.push(k); k = prevTrading(k); }
+  return out;
+}
+// Of the given days, how many this member had to do and how many they finished.
+function finishOf(key: string, days: string[]): { due: number; done: number } {
+  const since = stats(key).since;
+  let due = 0, done = 0;
+  for (const k of days) {
+    if (!since || k < since) continue;
+    const st = statusOf(k, key);
+    if (st === "EXCUSED" || st === "UNLOGGED" || st === "WAITING") continue;
+    due++;
+    if (st === "COMPLETE") done++;
+  }
+  return { due, done };
+}
+const pct = (done: number, due: number): number | null => due ? Math.round(100 * done / due) : null;
+function insightsHtml(): string {
+  const list = activeMembers();
+  if (!list.length) return `<div class="card"><p class="empty">No members yet.</p></div>`;
+  const recent = closedDaysBack(INS_DAYS), before = closedDaysBack(INS_DAYS, prevTrading(recent[recent.length - 1]));
+  const last5 = recent.slice(0, 5);
+
+  const rows = list.map(m => {
+    const now = finishOf(m.key, recent), was = finishOf(m.key, before), five = finishOf(m.key, last5);
+    return { m, now: pct(now.done, now.due), was: pct(was.done, was.due), missed5: five.due - five.done, due5: five.due };
+  });
+  const slipping = rows.filter(r => r.missed5 >= 2);
+  // Slipping first, then the lowest rate, so the people who need a nudge are at the top.
+  rows.sort((a, b) => (b.missed5 >= 2 ? 1 : 0) - (a.missed5 >= 2 ? 1 : 0) || (a.now ?? 101) - (b.now ?? 101) || a.m.name.localeCompare(b.m.name));
+
+  const slipCard = `<div class="card"><div class="cardhead">${headInfo("Who is slipping", "ins-slip", "who is slipping")}</div>
+    ${infoText("ins-slip", "Members who didn't finish their homework on 2 or more of the last 5 trading days. Excused days don't count.")}
+    ${slipping.length ? `<ul class="ins-list">${slipping.map(r => `<li>${avatarHtml(r.m, 32)}<div class="who2"><b><button class="namebtn" data-profile="${esc(r.m.key)}">${esc(r.m.name)}</button></b>
+      <span>Didn't finish <span class="num">${r.missed5}</span> of the last <span class="num">${r.due5}</span> days</span></div></li>`).join("")}</ul>`
+      : `<p class="empty">Nobody is slipping right now.</p>`}</div>`;
+
+  const change = (r): string => {
+    if (r.now === null) return "";
+    if (r.was === null) return `<span class="ins-chg">New</span>`;
+    const d = r.now - r.was;
+    if (!d) return `<span class="ins-chg">Same as before</span>`;
+    const up = d > 0;
+    return `<span class="ins-chg ${up ? "up" : "down"}" title="${up ? "Up" : "Down"} ${Math.abs(d)} from the 4 weeks before">${ic(up ? "arrow-up" : "arrow-down", 14)}<span class="num">${Math.abs(d)}</span><span class="sr-only"> ${up ? "up" : "down"} from the 4 weeks before</span></span>`;
+  };
+  const memberCard = `<div class="card"><div class="cardhead">${headInfo("Members · last 4 weeks", "ins-mem", "member rates")}</div>
+    ${infoText("ins-mem", "How many of their homework days each member finished in the last 20 trading days. The arrow compares it with the 20 trading days before that.")}
+    <ul class="ins-list">${rows.map(r => `<li>${avatarHtml(r.m, 32)}<div class="who2"><b><button class="namebtn" data-profile="${esc(r.m.key)}">${esc(r.m.name)}</button></b>
+      <span>${r.now === null ? "No days to count yet" : `Finished <span class="num">${r.now}%</span> of days`}</span></div>${change(r)}</li>`).join("")}</ul></div>`;
+
+  // Each required box: on how many counted days it was ticked, across the whole group.
+  const req = RULES.filter(r => r[2] === "req");
+  const boxRows = req.map(([b, label]) => {
+    let due = 0, done = 0;
+    for (const m of list) {
+      const since = stats(m.key).since;
+      for (const k of recent) {
+        if (!since || k < since) continue;
+        const st = statusOf(k, m.key);
+        if (st === "EXCUSED" || st === "UNLOGGED" || st === "WAITING") continue;
+        due++;
+        if ((tickOf(k, m.key) || {})[b]) done++;
+      }
+    }
+    return { label, rate: pct(done, due) };
+  }).filter(x => x.rate !== null).sort((a, b) => a.rate - b.rate);
+  const boxCard = boxRows.length ? `<div class="card"><div class="cardhead">${headInfo("Boxes · last 4 weeks", "ins-box", "the boxes")}</div>
+    ${infoText("ins-box", "How often each required box was ticked, for the whole group. The box at the top is the one people skip most.")}
+    ${boxRows.length > 1 && boxRows[0].rate < boxRows[1].rate ? `<p class="ins-lead"><b>${esc(boxRows[0].label)}</b> is skipped most often.</p>` : ""}
+    <ul class="ins-boxes">${boxRows.map(x => `<li><span class="ins-blabel">${esc(x.label)}</span><span class="ins-btrack" aria-hidden="true"><span class="ins-bfill" style="width:${x.rate}%"></span></span><span class="num">${x.rate}%</span></li>`).join("")}</ul></div>` : "";
+
+  // The group's finished share for each of the last 8 weeks (closed days only).
+  const weeks = [7, 6, 5, 4, 3, 2, 1, 0].map(i => {
+    const mon = addDays(mondayOf(today), -7 * i);
+    const days = [0, 1, 2, 3, 4].map(n => addDays(mon, n)).filter(k => isTradingDay(k) && k <= today && isFinal(k));
+    let due = 0, done = 0;
+    for (const m of list) { const f = finishOf(m.key, days); due += f.due; done += f.done; }
+    return { mon, rate: pct(done, due) };
+  });
+  const weekCard = weeks.some(w => w.rate !== null) ? `<div class="card"><div class="cardhead">${headInfo("Group · last 8 weeks", "ins-week", "the weekly bars")}</div>
+    ${infoText("ins-week", "The share of homework days the whole group finished each week. This week only counts the days whose cutoff has passed.")}
+    <ol class="ins-bars">${weeks.map(w => {
+      const lab = w.mon === mondayOf(today) ? "This week" : "Week of " + fmtDay(w.mon, { weekday: undefined });
+      return `<li aria-label="${esc(lab)}: ${w.rate === null ? "nothing to count" : w.rate + "% finished"}"><span class="num ins-pct" aria-hidden="true">${w.rate === null ? "–" : w.rate + "%"}</span>
+        <span class="ins-track" aria-hidden="true">${w.rate === null ? "" : `<span class="ins-fill" style="height:${Math.max(w.rate, 2)}%"></span>`}</span>
+        <span class="ins-lab" aria-hidden="true">${esc(w.mon === mondayOf(today) ? "Now" : fmtDay(w.mon, { weekday: undefined }))}</span></li>`;
+    }).join("")}</ol></div>` : "";
+
+  const hint = `<p class="page-hint">Only you${isGroupOwner() ? " and your admins" : ", the group owner and the other admins"} can see this page.</p>`;
+  return hint + (isWide()
+    ? `<div class="admin-grid"><div>${slipCard}${weekCard}${boxCard}</div><div>${memberCard}</div></div>`
+    : `<div class="admin-one">${slipCard}${memberCard}${weekCard}${boxCard}</div>`);
+}
+
 function renderAdmin() {
   const g = group(), me = session.user.id;
   const free = activeMembers().filter(m => !people.some(p => p.member_key === m.key && p.status === "approved"));
@@ -2738,6 +2845,7 @@ function renderAdmin() {
       ${views.map(([v, l]) => `<button data-admin-view="${v}" aria-pressed="${adminView === v}">${l}${v === "people" && pendingCount() ? ` <span class="count">${pendingCount()}</span>` : v === "all" && reqN ? ` <span class="count">${reqN}</span>` : ""}</button>`).join("")}</div>` : "";
   if (adminView === "all") return segs + note + reportsCardHtml(reports, true) + owner;
   if (adminView === "group") return segs + note + paused + groupSettingsHtml(g);
+  if (adminView === "insights") return segs + note + paused + insightsHtml();
   const repCard = isOwnerHere ? reportsCardHtml(reports.filter(r => r.group_id === gid), false) : "";
   return segs + note + paused + repCard + (isWide() ? `<div class="admin-grid"><div>${cols[0]}</div><div>${cols[1]}</div></div>` : `<div class="admin-one">${cols.join("")}</div>`);
 }

@@ -159,6 +159,9 @@ Pictures need internet. Signing out removes the saved copy from that phone.
   at the bottom of the sidebar. The back button goes to the page before.
 - **P&L calendar:** on a profile, members who type in their P&L get a month calendar: Mon to Fri, each day's P&L in green or
   red, the month's total on top, arrows for other months. Tap a day to open it. It only uses the P&L already saved, so no SQL.
+- **See who is slipping** (owner and admins): Admin → Insights. Who didn't finish 2 or more of the last 5 trading days,
+  each member's finish rate for the last 4 weeks against the 4 weeks before, which box gets skipped most, and the group's
+  last 8 weeks. Worked out in the browser from ticks it already has; excused days don't count.
 - **Group settings** (owner): Admin → Group settings. Six short pages: Name and look, Homework boxes, Cutoff, Discord recaps,
   Mentor server, Move to a new owner. Each page has its own Save button and saves only what is on that page.
 - **A mentor wants to see all their groups:** they sign in with Discord once. You go to Admin → All groups → Mentor servers, type a
