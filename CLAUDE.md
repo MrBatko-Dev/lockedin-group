@@ -206,10 +206,8 @@ labels above headings, a "Made with AI" tag.
   - Tiles (the Profile tiles `.mequick`, `.reflect-nudge`), cards, list rows, inputs and week cells keep corners from
     the scale (8, 10, 12, 14, 16px).
   - Only round icon buttons and avatars are circles.
-  - **Not done yet:** the block at the end of `globals.css` (comment "Pill corners (Batko, 15 Nov 2026)") still
-    follows the old rule. It comes last, so it overrides any corner set earlier in the file, and it still makes tick
-    boxes, small buttons and option groups pills. When you change one of those shapes, take its selector out of that
-    block and fix the block's comment. Adding a radius somewhere else does nothing. New full-size buttons join it.
+  - The pill block at the end of `globals.css` (comment "Shapes follow what a thing is for") holds only the pills.
+    It comes last, so it overrides any corner set earlier in the file. New full-size buttons join it; nothing else does.
 - Fonts: Schibsted Grotesk for text, JetBrains Mono for digits only (`.num`), Instrument Serif on the front page.
 - Icons are the drawn SVGs from `ic("name")`, `SYM` and `SVG` in the engine. Add a path there if one is missing.
 - Phones first: check at 375px and 1280px wide. The layout switches at 960px (`isWide()`). Tap targets are at

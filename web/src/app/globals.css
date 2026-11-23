@@ -228,7 +228,7 @@
   .panel header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
   .panel header b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
   .panel header span { font-size: 14px; color: var(--muted); }
-  .panel h3 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.005em; margin: 20px 0 8px; }
+  .panel h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
   .panel textarea { width: 100%; min-height: 140px; resize: vertical; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
                     color: var(--text); font: 16px/1.4 var(--font-ui); padding: 10px 12px; }
   .panel textarea::placeholder { color: var(--muted); }
@@ -544,7 +544,7 @@
   .pday.off { background: transparent; cursor: default; }
   .pday.off .pd { color: var(--muted); opacity: 0.6; }
   .pday .pd { font: 600 12px var(--font-data); color: var(--muted); }
-  .pday b { font: 650 12px var(--font-data); color: var(--text); white-space: nowrap; letter-spacing: -0.02em; }
+  .pday b { font: 650 12px var(--font-data); color: var(--text); white-space: nowrap; }
   .pday small { font: 500 11px var(--font-data); color: var(--muted); white-space: nowrap; }
   .pday.up { background: color-mix(in srgb, var(--good) 12%, var(--surface)); border-color: var(--good); }
   .pday.up b { color: var(--good-text); }
@@ -652,7 +652,7 @@
   .q { position: relative; min-height: 64px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text);
        display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer; }
   .q.bonus { border-style: dashed; background: transparent; }
-  .q .qc { flex: none; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--muted); display: grid; place-items: center; }
+  .q .qc { flex: none; width: 26px; height: 26px; border-radius: 7px; box-shadow: inset 0 0 0 2px var(--muted); display: grid; place-items: center; }
   .q b { display: block; font-size: 15px; font-weight: 600; line-height: 1.15; }
   .q small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
   .q[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); border-color: color-mix(in srgb, var(--accent-text) 55%, transparent); }
@@ -685,7 +685,7 @@
   .lobby-switch { margin: 0 0 12px; }
   .lobby-switch button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   /* waiting for approval: takes the join form's place in the lobby card */
-  .waitbox h2 { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 8px; font-size: 18px; font-weight: 650; line-height: 1.3; letter-spacing: -0.015em; color: var(--text); text-wrap: balance; }
+  .waitbox h2 { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 8px; font-size: 18px; font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
   .waitbox h2 .ic { flex: none; margin-top: 2px; color: var(--accent-text); }
   .waitbox h2 b { font-weight: inherit; overflow-wrap: anywhere; }
   .gate .waitbox p { margin: 0 0 16px; font-size: 15px; line-height: 1.45; color: var(--text-2); }
@@ -733,7 +733,7 @@
     width: min(1120px, calc(100% - 24px)); display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 16px;
     border-radius: 16px; background: rgba(18, 18, 22, 0.55); border: 1px solid rgba(255, 255, 255, 0.08);
     -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
-  .lp-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .lp-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
   .lp-nav .brand img { width: 26px; height: 26px; border-radius: 28%; }
   .lp-nav .links { display: none; gap: 26px; }
   .lp-nav .links a { color: var(--lp-2); text-decoration: none; font: 500 14px var(--font-ui); }
@@ -818,15 +818,15 @@
   @keyframes bar-grow { from { width: 80%; } to { width: 100%; } }
   .count-new, .st .good.late-st { opacity: 0; }
   /* the big 5/5: solid white, not chrome gradient text */
-  .chrome { font-size: clamp(110px, 26vw, 300px); font-weight: 700; letter-spacing: -0.06em; line-height: 0.9; margin: 10px 0 6px; color: #fff; }
+  .chrome { font-size: clamp(110px, 26vw, 300px); font-weight: 600; letter-spacing: -0.06em; line-height: 0.9; margin: 10px 0 6px; color: #fff; }
   /* features: editorial list */
   .flist { display: grid; margin-top: 44px; border-top: 1px solid var(--lp-line); text-align: left; }
   .frow { display: grid; grid-template-columns: 44px 1fr; gap: 6px 16px; padding: 24px 0; border-bottom: 1px solid var(--lp-line); }
   .frow .mono { padding-top: 6px; }
   .frow b { font-size: 21px; letter-spacing: -0.02em; font-weight: 600; }
   .frow p { grid-column: 2; margin: 0; color: rgba(245, 245, 247, 0.68); font-size: 15.5px; line-height: 1.55; max-width: 52ch; }
-  .lp-own { margin-top: 56px; border-radius: 24px; padding: 30px 26px; text-align: left; border: 1px solid var(--lp-line);
-    background: radial-gradient(120% 140% at 100% 0%, rgba(37, 99, 235, 0.2), transparent 55%), rgba(255, 255, 255, 0.03); }
+  .lp-own { margin-top: 56px; border-radius: 16px; padding: 32px 24px; text-align: left; border: 1px solid var(--lp-line);
+    background: rgba(255, 255, 255, 0.03); }
   .lp-own h3, .lp .lp-own h2 { font-size: clamp(26px, 4vw, 36px); line-height: 1.1; letter-spacing: -0.035em; font-weight: 600; margin: 12px 0 10px; }
   .lp-own p { color: rgba(245, 245, 247, 0.72); margin: 0 0 20px; line-height: 1.55; max-width: 56ch; }
   .lp-final { position: relative; isolation: isolate; text-align: center; padding: 140px 20px 80px; overflow: hidden; }
@@ -859,7 +859,7 @@
   .lobby-line { font-size: 14px; color: var(--text-2); margin: 10px 0 0; text-align: left; }
   .lobby-line .ic { margin-right: 6px; color: var(--muted); }
   .panel .joinbox label { display: none; }
-  .setpage h3 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.005em; margin: 20px 0 8px; }
+  .setpage h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
   .setpage .sub-hint { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
   .setpage .glist { margin-top: 4px; }
   .backrow { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px 0 4px; margin: 0 0 -4px; border: 0; background: none;
@@ -984,7 +984,7 @@
   .tour-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
   .tour-n { font: 600 12px var(--font-data); color: var(--muted); }
   .tour-x { width: 32px; height: 32px; font-size: 14px; background: var(--glass-pill); color: inherit; }
-  .tour-card h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; }
+  .tour-card h3 { margin: 0 0 6px; font-size: 18px; }
   .tour-card p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-2); }
   .tour-dots { display: flex; gap: 5px; margin: 14px 0 12px; }
   .tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--line-strong); }
@@ -993,7 +993,7 @@
 
   /* ---------- admin ---------- */
   .cardhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -6px -6px 10px 0; }
-  .cardhead h2, .lp .cardhead h2 { margin: 0; font-size: 18px; font-weight: 650; color: var(--text); letter-spacing: -0.015em; line-height: 1.25; }
+  .cardhead h2, .lp .cardhead h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.25; }
   .cardhead .nav { display: flex; align-items: center; gap: 2px; font-size: 14px; font-weight: 600; color: var(--text-2); }
   .cardhead .round { width: 36px; height: 36px; font-size: 18px; }
   .person { display: grid; grid-template-columns: 36px 1fr; gap: 4px 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
@@ -1050,9 +1050,9 @@
     main { max-width: 1240px; gap: 16px; }
     .tabbar { display: none; }
     .topbar { grid-template-columns: 1fr auto 1fr; padding: 6px 8px 6px 20px; min-height: 58px; }   /* same height on every page */
-    .topbar .brand { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .topbar .brand { font-size: 17px; font-weight: 600; }
     .topbar > .gname { font-size: 17px; justify-self: start; color: var(--text); }
-    .topbar > .gname span { font-weight: 700; letter-spacing: -0.01em; }
+    .topbar > .gname span { font-weight: 600; }
     .topbar .center { display: flex; align-items: center; gap: 6px; }
     .topbar .center b { font-size: 17px; font-weight: 600; min-width: 132px; text-align: center; }
     .topbar .end { justify-self: end; display: flex; align-items: center; gap: 10px; padding-right: 8px; font-size: 13px; color: var(--muted); }
@@ -1182,7 +1182,7 @@
       -webkit-backdrop-filter: blur(26px) saturate(190%); backdrop-filter: blur(26px) saturate(190%);
       box-shadow: inset 0 1px 0 var(--lg-rim), inset 1px 0 0 color-mix(in srgb, var(--lg-rim) 45%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--lg-rim) 30%, transparent), var(--lg-shadow); }
     .rail[hidden] { display: none !important; }
-    .rail .rail-brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px 12px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .rail .rail-brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px 12px; font-size: 16px; font-weight: 600; color: var(--text); }
     .rail .rail-logo { width: 30px; height: 30px; border-radius: 28%; display: block; flex: none; }
     .rail .rail-h { margin: 16px 10px 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
     .rail button { position: relative; width: 100%; min-height: 40px; flex: none; border: 0; border-radius: 12px; background: transparent; color: var(--rail-icon);
@@ -1204,7 +1204,7 @@
 
   /* ================================================================ front page: bold black-and-white editorial look */
   .lp { background: #000; }
-  .lp h1, .lp h2 { font-weight: 700; letter-spacing: -0.04em; line-height: 0.98; text-wrap: balance; }
+  .lp h1, .lp h2 { font-weight: 600; letter-spacing: -0.04em; line-height: 0.98; text-wrap: balance; }
   .lp-hero.home h1 { letter-spacing: -0.045em; line-height: 0.98; }   /* sentence case, like every other heading */
   .lp .dim { display: block; color: #74747e; }
   .lp-hero h1 { font-size: clamp(42px, 7.2vw, 96px); }
@@ -1218,17 +1218,14 @@
   /* hero: a group's day, under the text on phones and to the right of it on computers */
   .hero-app { display: block; margin: 0; justify-self: start; width: min(420px, 100%); }
   .hero-app .mock { transform: none; width: 100%; }
-  .hero-own { display: inline-block; margin-top: 16px; padding: 0; border: 0; background: none; cursor: pointer; font-family: inherit; color: rgba(245, 245, 247, 0.78); font-size: 15px; font-weight: 500;
-    text-decoration: underline; text-decoration-color: rgba(245, 245, 247, 0.35); text-underline-offset: 4px; transition: color .15s, text-decoration-color .15s; }
-  .hero-own:hover { color: #fff; text-decoration-color: #fff; }
   #start-own { scroll-margin-top: 96px; }
   /* text sections */
   .bigsteps { display: grid; gap: 0; border-top: 1px solid rgba(255, 255, 255, 0.14); }
   .bigsteps > div { padding: 22px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.14); }
-  .bigsteps b { display: block; font: 700 clamp(24px, 3.2vw, 36px)/1 var(--font-ui); letter-spacing: -0.035em; margin-bottom: 10px; }
+  .bigsteps b { display: block; font: 600 clamp(24px, 3.2vw, 36px)/1 var(--font-ui); letter-spacing: -0.035em; margin-bottom: 10px; }
   .bigsteps p { margin: 0; color: rgba(245, 245, 247, 0.68); font-size: 16px; line-height: 1.5; max-width: 44ch; }
   .frow { grid-template-columns: 1fr; }
-  .frow b { font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -0.03em; font-weight: 700; }
+  .frow b { font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -0.03em; font-weight: 600; }
   .frow p { grid-column: 1; }
   .vcol { border-radius: 16px; background: #0b0b0d; } .vcol h2 { font-size: 28px !important; }
   /* the group side: the same flat card, with a blue edge so it still reads as the better side */
@@ -1245,9 +1242,7 @@
     .lp .versus { grid-template-columns: 1fr 1fr; gap: 20px; }
   }
 
-  /* front page, round 2: app-style buttons, quiet dot texture (no glow), 3D phone */
-  body.landing::after { display: block; content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px) 0 0 / 22px 22px; }
+  /* front page, round 2: app-style buttons, plain background (no dot texture), 3D phone */
   .lp { background: transparent; }
   html:has(body.landing) { background: #000; }
   body.landing { background: transparent; }   /* see-through, so the dots (drawn behind the page) show */
@@ -1262,13 +1257,11 @@
 
 
   /* ================================================================ front page: the scroll story (the phone stays put while the app inside it plays out) */
-  .story { --st-bg: #020817; --ex: cubic-bezier(0.16, 1, 0.3, 1); --qt: cubic-bezier(0.25, 1, 0.5, 1);
+  .story { --st-bg: #0f0f11; --ex: cubic-bezier(0.16, 1, 0.3, 1); --qt: cubic-bezier(0.25, 1, 0.5, 1);
     position: relative; height: 420vh; background: linear-gradient(180deg, transparent, var(--st-bg) 60vh, var(--st-bg) calc(100% - 60vh), transparent); }
   .story-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; isolation: isolate; }
   /* phones: about half the scrolling (each of the 4 steps is one short swipe); the animation follows the height on its own */
   @media (max-width: 759px) { .story { height: 270vh; } }
-  .story-pin::before { content: ""; position: absolute; inset: 0; z-index: -2;
-    background: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px) 0 0 / 22px 22px; }
   .story-grid { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: 92px 20px 20px; gap: 6px; }
   @media (min-width: 900px) { .story-grid { grid-template-columns: 1fr auto 1fr; grid-template-rows: 1fr; align-items: center; padding: 90px 40px 40px; gap: 32px; max-width: 1400px; margin: 0 auto; } }
   .story-text { position: relative; z-index: 120; max-width: 420px; }
@@ -1319,11 +1312,10 @@
   .lp-menu.open { visibility: visible; pointer-events: auto; }
   .lp-menu .bg { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.82); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4); opacity: 0; transition: opacity .35s; }
   .lp-menu.open .bg { opacity: 1; }
-  .lp-menu .bg::before { content: ""; position: absolute; inset: 0; background: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.4px) 0 0 / 22px 22px; }
   .lp-menu .in { position: relative; flex: 1; display: flex; flex-direction: column; width: min(1120px, calc(100% - 24px)); margin: 0 auto;
     padding: calc(max(12px, env(safe-area-inset-top, 0px)) + 78px) 16px calc(28px + env(safe-area-inset-bottom, 0px)); }
   .lp-menu nav { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-  .lp-menu nav a { color: #fff; text-decoration: none; font: 700 clamp(36px, 9vw, 56px)/1.15 var(--font-ui); letter-spacing: -0.035em; width: fit-content;
+  .lp-menu nav a { color: #fff; text-decoration: none; font: 600 clamp(36px, 9vw, 56px)/1.15 var(--font-ui); letter-spacing: -0.035em; width: fit-content;
     opacity: 0; transform: translateY(28px); transition: opacity .5s var(--ex, ease) var(--delay, 0ms), transform .6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms), color .2s; }
   .lp-menu nav a:hover, .lp-menu nav a[aria-current="page"] { color: var(--lp-blue); }
   .lp-menu.open nav a { opacity: 1; transform: none; }
@@ -1420,11 +1412,11 @@
      with roomy body text so each point reads as an explanation, not another headline. */
   h1, h2, h3, .lp-final h2 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
-  .lp .bigsteps b, .lp .frow b { font: 650 clamp(20px, 2.1vw, 24px)/1.2 var(--font-ui); letter-spacing: -0.02em; text-transform: none; color: #fff; margin: 0 0 8px; }
+  .lp .bigsteps b, .lp .frow b { font: 600 clamp(20px, 2.1vw, 24px)/1.2 var(--font-ui); letter-spacing: -0.02em; text-transform: none; color: #fff; margin: 0 0 8px; }
   .lp .bigsteps p, .lp .frow p { font-size: 17px; line-height: 1.55; color: rgba(245, 245, 247, 0.74); max-width: 52ch; }
   .lp .bigsteps > div { padding: 26px 0 28px; }
   .lp .frow { padding: 26px 0 28px; gap: 0; }
-  .lp .vcol h2 { font: 650 26px/1.2 var(--font-ui) !important; letter-spacing: -0.02em; text-transform: none; margin: 10px 0 20px; }
+  .lp .vcol h2 { font: 600 26px/1.2 var(--font-ui) !important; letter-spacing: -0.02em; text-transform: none; margin: 10px 0 20px; }
   .lp .vcol li { font-size: 16.5px; line-height: 1.5; }
   .lp .sub, .lp .lead { font-size: 18px; line-height: 1.55; }
   @media (min-width: 900px) {
@@ -1440,7 +1432,7 @@
    Mono only for the numbers; the words around them are in the interface font. */
 .sum-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .sum-big, .sum-time, .sum-until { margin: 0; }
-.daysum .num { font-family: var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.daysum .num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .sum-done { min-width: 0; }
 .sum-big { font: 650 32px/1.1 var(--font-ui); color: var(--text); letter-spacing: -0.02em; white-space: nowrap; }
 .sum-big > .num { letter-spacing: -0.04em; }
@@ -1610,24 +1602,15 @@ a.btn { text-decoration: none; }
   .lp-burger::after, .lp-nav .brand::after { content: ""; position: absolute; left: 50%; top: 50%; width: 100%; min-width: 44px; height: 44px; transform: translate(-50%, -50%); }
   .foot-links { row-gap: 0; }
   .foot-links a, .lp-menu .mfoot .small-links a { display: inline-flex; align-items: center; min-height: 44px; }
-  .hero-own { min-height: 44px; }
   .lp-menu nav a { padding: 2px 0; }
 }
 
-/* Pill corners (Batko, 15 Nov 2026): every button and the navigation bars have fully round ends.
-   This comes last so it wins over the older corner scale above. The tick boxes (.t, .q) are pills too.
-   The Groups / Settings / Help tiles on Profile (.mequick) too.
-   Left as they were on purpose: the week grid cells (.cell), list rows, picture thumbnails, cards and
-   inputs, because they are small squares or rows rather than buttons. */
-.t, .q, .btn, .btn.small, .reflect-nudge, .quick .qnote, .react, .tagpick button,
-.segset, .segset button, .result-set button, .pic > button.remove, .pick-opt,
-.topbar, .topbar .end button, .topbar .mid button, .topbar .mid .gname, .pmenu summary,
+/* Shapes follow what a thing is for (Batko, 23 Nov 2026): full-size buttons, the navigation bars and the
+   top bar are pills. This comes last so it wins over the corner scale above.
+   Not pills, on purpose: tick boxes (.t, .q), small buttons inside cards or rows (.btn.small, .react, picture
+   remove), option groups (.segset, .tagpick, .result-set, .pick-opt), tiles (.mequick), week cells, cards,
+   list rows and inputs. They keep their corners from the scale. .btn.small keeps 10px because
+   ".btn.small" above is more specific than ".btn" here. */
+.btn, .topbar, .topbar .end button, .topbar .mid button, .topbar .mid .gname, .pmenu summary,
 .tabbar, .tabbar button, .tabbar .pill, .tablens, .rail button,
-.mequick button, .lp-nav, .lp-burger { border-radius: 999px; }
-
-/* Phones only (Batko, 15 Nov 2026): the tick boxes go back to rounded cards, because two pills side by
-   side with long names looked squashed on a narrow screen. From 960px up they stay pills. */
-@media (max-width: 959px) {
-  .t { border-radius: 10px; }
-  .q { border-radius: 14px; }
-}
+.lp-nav, .lp-burger { border-radius: 999px; }

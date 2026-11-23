@@ -3377,7 +3377,6 @@ function renderLanding() {
         <h1 class="rv in d1">Daily trading homework<span class="dim">tracked as a group</span></h1>
         <p class="lead rv in d2">Your Discord group picks the boxes, like chart, journal and HTF. Everyone ticks them off after their session, and everyone can see who did.</p>
         <div class="lp-cta rv in d3">${signin()}${blink("how", "How it works")}</div>
-        <button class="hero-own rv in d3" data-jump="start-own">Run a trading group? Start your own</button>
         ${errMsg}
         <p class="fine rv in d3">${pendingInvite() ? "You've been invited to a group. Sign in with Discord and you'll be on its waiting list." : "Free. You'll need a join code from your group's owner."}
           By signing in you agree to the ${link("terms", "Terms")} and the ${link("privacy", "Privacy policy")}.</p>
@@ -3584,11 +3583,12 @@ function initStory() {
   if (story && story.root === root) return;
   const q = sel => root.querySelector(sel), qa = sel => [...root.querySelectorAll(sel)];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // every chapter sits on the same plain dark grey (no colored washes); bg stays so the fade code keeps working
   const CH = [
-    { t: ["Tick your", "homework"], b: "One tap per box after your session. All required boxes ticked turns your circle green.", bg: [2, 8, 23] },
-    { t: ["Show your", "work"], b: "Write what happened and add chart screenshots. Your group reads it and learns from it.", bg: [2, 16, 28] },
-    { t: ["Beat the", "cutoff"], b: "Everyone sees who's done before the day closes. Nobody wants to be the red circle.", bg: [2, 20, 14] },
-    { t: ["Climb the", "ranking"], b: `Points, streaks for days in a row, and ${BADGE_COUNT} badges to earn. Every day counts.`, bg: [10, 10, 16] },
+    { t: ["Tick your", "homework"], b: "One tap per box after your session. All required boxes ticked turns your circle green.", bg: [15, 15, 17] },
+    { t: ["Show your", "work"], b: "Write what happened and add chart screenshots. Your group reads it and learns from it.", bg: [15, 15, 17] },
+    { t: ["Beat the", "cutoff"], b: "Everyone sees who's done before the day closes. Nobody wants to be the red circle.", bg: [15, 15, 17] },
+    { t: ["Climb the", "ranking"], b: `Points, streaks for days in a row, and ${BADGE_COUNT} badges to earn. Every day counts.`, bg: [15, 15, 17] },
   ];
   const day = mockDay();
   const week = [0, 1, 2, 3, 4].map(i => addDays(mondayOf(day), i));
@@ -3647,7 +3647,7 @@ function initStory() {
   const scaleBox = q("#s-scale"), screenEl = q("#s-screen"), phoneEl = q("#s-phone");
   const boxes = qa(".q"), todayCells = qa(".s-today"), note = q("#ma-note"), shots = qa(".s-shot"), pts = qa(".pts"), pages = qa(".s-page"), tabs = qa(".tabbar button");
   const sText = q("#story-text"), sTitle = q("#story-title"), sBody = q("#story-body"), tapEl = q("#s-tap");
-  q("#st-chapters").innerHTML = CH.map((c, i) => `<li><span>0${i + 1}</span>${c.t.join(" ")}<div class="bar"><i></i></div></li>`).join("");
+  q("#st-chapters").innerHTML = CH.map((c, i) => `<li><span>${i + 1}</span>${c.t.join(" ")}<div class="bar"><i></i></div></li>`).join("");
   const chLis = qa("#st-chapters li"), chBars = qa("#st-chapters .bar i"), dots = qa("#st-dots i");
   const S: any = { root, chap: -1, page: -1, ticks: 0, noteOpen: false, hint: -1, visible: false };
   function measure() {
