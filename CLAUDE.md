@@ -195,13 +195,21 @@ labels above headings, a "Made with AI" tag.
 - Text contrast at least 4.5:1 on its background in both themes.
 - Cards are flat and solid with one thin border. Glass (`.glass`) is only for the navigation bars.
 - Shape follows what a thing is for (Batko's rule, 23 Nov 2026, replacing "everything is a pill"):
-  - **Pills** (`border-radius: 999px`): main action buttons (Save, Join, Sign in, Approve) and the navigation bars.
-    New main buttons join the pill block at the end of `globals.css`.
-  - **Rounded squares** for tick boxes, so they read as "tick me" and not as a button.
-  - **Rounded rectangles** for small buttons inside a card or row (edit, remove, more), matching the card's corners,
-    and for groups of options side by side (group color, day picker), set in one shared frame.
-  - Cards, list rows, inputs and week cells keep corners from the scale (8, 10, 12, 14, 16px).
+  - **Pills** (`border-radius: 999px`): every full-size button (`.btn`: main, secondary, danger, Discord), so a Save
+    and a Cancel side by side match, plus the navigation bars and the top bar controls.
+  - **Tick boxes** (`.t`, `.q`) are wide buttons with the box name inside, so they keep corners from the scale
+    (10px and 14px, as phones already show). The check holder inside (`.qc`) is a small rounded square (about 6px
+    corners), like a real checkbox, so it reads as "tick me" and not as a button.
+  - **Rounded rectangles** for small buttons inside a card or row (edit, remove, more, reactions) and for groups of
+    options side by side (group color, result picker), set in one shared frame. Use 8 or 10px corners: a corner is
+    never more than about a third of the control's height, or the control turns back into a pill.
+  - Tiles (the Profile tiles `.mequick`, `.reflect-nudge`), cards, list rows, inputs and week cells keep corners from
+    the scale (8, 10, 12, 14, 16px).
   - Only round icon buttons and avatars are circles.
+  - **Not done yet:** the block at the end of `globals.css` (comment "Pill corners (Batko, 15 Nov 2026)") still
+    follows the old rule. It comes last, so it overrides any corner set earlier in the file, and it still makes tick
+    boxes, small buttons and option groups pills. When you change one of those shapes, take its selector out of that
+    block and fix the block's comment. Adding a radius somewhere else does nothing. New full-size buttons join it.
 - Fonts: Schibsted Grotesk for text, JetBrains Mono for digits only (`.num`), Instrument Serif on the front page.
 - Icons are the drawn SVGs from `ic("name")`, `SYM` and `SVG` in the engine. Add a path there if one is missing.
 - Phones first: check at 375px and 1280px wide. The layout switches at 960px (`isWide()`). Tap targets are at
@@ -241,7 +249,7 @@ inside another task.
 | Saying "works" about a signed-in screen that was never opened | Say what you ran, what you saw, and what could not be checked locally |
 | Inventing a quote, a user count or a rating for the front page | No proof exists yet. Leave it out |
 | Writing copy with em dashes, emoji, hype or exclamation marks | Plain sentences. Use a comma, a colon or a full stop |
-| Making everything a pill, or square corners on a main button | Main buttons and nav bars are pills; tick boxes, small in-card buttons, option groups, cards, rows and cells use the corner scale |
+| Making everything a pill, or a pill-shaped tick box, small in-card button or option | Full-size buttons, nav bars and top bar are pills; tick boxes, small buttons (8 or 10px), option groups, tiles, cards, rows and cells use the corner scale |
 | A new hard-coded color that only works in dark mode | Use the variables and check light mode too |
 | Adding a package, a linter, a test framework or a refactor nobody asked for | Ask first. Smallest change wins |
 | Changing app behaviour and leaving the docs behind | Update `README.md`, and `lockedin-support/faq.md` when members would notice the change |

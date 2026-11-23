@@ -30,9 +30,11 @@ Project layout:
 3. **Secrets.** No service_role or secret key anywhere. Nothing read from `secrets/`.
 4. **Site safety.** The Content-Security-Policy in `layout.tsx` must not get looser. If files the service worker caches changed,
    `VERSION` in `web/public/sw.js` should go up.
-5. **Design and copy rules.** None of these may appear in new UI or text: purple gradients, pill-shaped buttons, fake
+5. **Design and copy rules.** None of these may appear in new UI or text: purple gradients, fake
    reviews/metrics/counters, vague hero text, emoji icons, em dashes, over-the-top scroll or cursor animations, AI stock photos,
    AI-sounding filler copy, small caps labels above headings. Headings are sentence case.
+   Shapes follow section 8 of `CLAUDE.md`: full-size buttons, the navigation bars and the top bar are pills; tick boxes,
+   small buttons inside cards or rows, option groups, tiles, cards, rows and cells are not.
 
 ## Report
 Start with one line: **Ready**, or **Fix first** followed by how many problems.
