@@ -2769,13 +2769,15 @@ function insightsHtml(): string {
     for (const m of list) { const f = finishOf(m.key, days); due += f.due; done += f.done; }
     return { mon, rate: pct(done, due) };
   });
+  // weeks before the group had anything to count are left out, so a new group doesn't see a row of empty bars
+  const shown = weeks.slice(Math.max(0, weeks.findIndex(w => w.rate !== null)));
   const weekCard = weeks.some(w => w.rate !== null) ? `<div class="card"><div class="cardhead">${headInfo("Group · last 8 weeks", "ins-week", "the weekly bars")}</div>
     ${infoText("ins-week", "The share of homework days the whole group finished each week. This week only counts the days whose cutoff has passed.")}
-    <ol class="ins-bars">${weeks.map(w => {
+    <ol class="ins-bars" style="grid-template-columns:repeat(${shown.length},1fr)">${shown.map(w => {
       const lab = w.mon === mondayOf(today) ? "This week" : "Week of " + fmtDay(w.mon, { weekday: undefined });
-      return `<li aria-label="${esc(lab)}: ${w.rate === null ? "nothing to count" : w.rate + "% finished"}"><span class="num ins-pct" aria-hidden="true">${w.rate === null ? "–" : w.rate + "%"}</span>
+      return `<li${w.mon === mondayOf(today) ? ' class="now"' : ""} aria-label="${esc(lab)}: ${w.rate === null ? "nothing to count" : w.rate + "% finished"}"><span class="num ins-pct" aria-hidden="true">${w.rate === null ? "–" : w.rate + "%"}</span>
         <span class="ins-track" aria-hidden="true">${w.rate === null ? "" : `<span class="ins-fill" style="height:${Math.max(w.rate, 2)}%"></span>`}</span>
-        <span class="ins-lab" aria-hidden="true">${esc(w.mon === mondayOf(today) ? "Now" : fmtDay(w.mon, { weekday: undefined }))}</span></li>`;
+        <span class="ins-lab" aria-hidden="true">${esc(w.mon === mondayOf(today) ? "Now" : fmtDay(w.mon, { weekday: undefined }).replace("Sept", "Sep"))}</span></li>`;
     }).join("")}</ol></div>` : "";
 
   const hint = `<p class="page-hint">Only you${isGroupOwner() ? " and your admins" : ", the group owner and the other admins"} can see this page.</p>`;
@@ -2841,7 +2843,7 @@ function renderAdmin() {
   fixAdminView();
   const views = adminViews(), reqN = requests.filter(r => r.status === "pending").length;
   // Phones: a switch at the top. Computers use the sidebar.
-  const segs = !isWide() && views.length > 1 ? `<div class="segset adminseg" style="grid-template-columns:repeat(${views.length},1fr)" role="group" aria-label="Admin view">
+  const segs = !isWide() && views.length > 1 ? `<div class="segset adminseg" style="grid-template-columns:repeat(${views.length},auto)" role="group" aria-label="Admin view">
       ${views.map(([v, l]) => `<button data-admin-view="${v}" aria-pressed="${adminView === v}">${l}${v === "people" && pendingCount() ? ` <span class="count">${pendingCount()}</span>` : v === "all" && reqN ? ` <span class="count">${reqN}</span>` : ""}</button>`).join("")}</div>` : "";
   if (adminView === "all") return segs + note + reportsCardHtml(reports, true) + owner;
   if (adminView === "group") return segs + note + paused + groupSettingsHtml(g);
